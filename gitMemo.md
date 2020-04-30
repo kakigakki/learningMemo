@@ -111,102 +111,102 @@
     - `Git statsh pop` 取出修改，删除栈上的第一个
 
 ### Git撤销和重置（主要用下面三个命令）
-22.	git checkout - - filename :  撤回自己在工作区的修改
-23.	git reset filename  撤回自己在暂存区的修改
-a)	相当于reset第二步曲的缩写
-24.	git commit - - amend 再次提交暂存区内已修改的文件(类似撤回自己在版本库的提交，再提交一次)
+22.	`git checkout - - filename :`  撤回自己在工作区的修改
+23.  `git reset filename`  撤回自己在暂存区的修改
+    - 相当于reset第二步曲的缩写
+24.	`git commit --amend` 再次提交暂存区内已修改的文件(类似撤回自己在版本库的提交，再提交一次)
 
-reset
+### reset
 25.	三步曲
-a)	第一步：git reset - -soft HEAD~  
-i.	一步：
-1.	动HEAD，带着当前branch一起往前一版本后退（撤销）
-ii.	（类似git commit - -amend，不过- -amend撤回然后提交了）
-iii.	Git reset - -soft  提交对象的hash值 ：HEAD带着branch去指定的提交对象上
-b)	第二步：git reset [- -mixed] HEAD~
-i.	两步：
-1.	动HEAD ,带着当前branch一起撤退
-2.	动了暂存区。
-ii.	git reset - -mixed 提交对象的hash值 ：HEAD带着branch去指定的提交对象上
-iii.	可缩写成：git reset
-c)	第三步：git rest - -hard HEAD~（reset命令唯一的危险用法）
-i.	三步：
-1.	动HEAD ,带着当前branch一起撤退
-2.	动了暂存区
-3.	动了工作区（会将工作区的内容覆盖）
-ii.	一般撤销工作区用：Git checkout - -filename 
-1.	跳过第一步，第二步，
-2.	只做第三步：动了工作区
-标签
+    - 第一步：git reset - -soft HEAD~  
+        - 一步：
+            - 动HEAD，带着当前branch一起往前一版本后退（撤销）
+        - (类似`git commit --amend`，不过`--amend`撤回然后提交了）
+        `Git reset --soft 提交对象的hash值` ：HEAD带着branch去指定的提交对象上
+    - 第二步：`git reset [- -mixed] HEAD~`
+        - 两步：
+            - 动HEAD ,带着当前branch一起撤退
+            - 动了暂存区。
+        - `git reset --mixed` 提交对象的hash值 ：HEAD带着branch去指定的提交对象上
+        - 可缩写成：`git reset`
+    - 第三步：`git reset --hard HEAD~`（reset命令唯一的危险用法）
+        - 三步：
+            - 动HEAD ,带着当前branch一起撤退
+            - 动了暂存区
+            - 动了工作区（会将工作区的内容覆盖）
+        - 一般撤销工作区用：`Git checkout --filename`
+        - 跳过第一步，第二步，
+        - 只做第三步：动了工作区
+### 标签
 15.	标签跟分支很像，只是分支能动，标签不能动
 16.	常用命令
-a)	Git tag  查看当前标签名
-b)	Git tag <标签名> [可选：提交对象的hash值] 新建标签
-c)	Git show <标签名> :查看标签
-d)	Git tag -d <标签名> ：删除标签
-e)	Git checkout <标签名> ：切换到tag 
-i.	如果当前标签没有分支时，会产生头部分离。需要在当前标签上创建分支
-1.	git checkout -b <分支名>
+    - `Git tag`  查看当前标签名
+    - `Git tag <标签名>` [可选：提交对象的hash值] 新建标签
+    - `Git show <标签名>` :查看标签
+    - `Git tag -d <标签名>` ：删除标签
+    - `Git checkout <标签名>` ：切换到tag 
+    - 如果当前标签没有分支时，会产生头部分离。需要在当前标签上创建分支
+    - `git checkout -b <分支名>`
 
-远程仓库
-1.	git remote add <别名>  url ： 让本地仓库跟远程仓库连起来
-2.	git remote -v ：查看远程仓库
-3.	git remote show 别名 ：查看远程仓库的更多信息
-4.	git remote rename 旧别名 新别名 ：重命名远程仓库
-5.	git remote rm 别名 ：删除远程仓库
-6.	git push 远程仓库别名 分支名
-7.	git clone 远程仓url ：将远程仓库拉到本地
-a)	git clone下来的远程仓库的别名，自动设置成origin
+### 远程仓库
+1.	`git remote add <别名>  url` ： 让本地仓库跟远程仓库连起来
+2.	`git remote -v` ：查看远程仓库
+3.	`git remote show 别名` ：查看远程仓库的更多信息
+4.	`git remote rename 旧别名 新别名` ：重命名远程仓库
+5.	`git remote rm 别名` ：删除远程仓库
+6.	`git push 远程仓库别名 分支名`
+7.	`git clone 远程仓url` ：将远程仓库拉到本地
+a)	`git clone`下来的远程仓库的别名，自动设置成origin
 8.	自己创建的仓库，可以进行push,但是如果是从别人的仓库clone下来的话，如果没有那个人的成员邀请的话，无法进行push
 
-团队协作流程
+### 团队协作流程
 1.	项目经理初始化远程仓库
-a)	在github上初始化一个空的仓库
+    - 在github上初始化一个空的仓库
 2.	项目经理创建本地仓库
-a)	Git init
-b)	将源码复制进来
-c)	修改用户名，修改邮箱
+    - `Git init`
+    - 将源码复制进来
+    - 修改用户名，修改邮箱
 3.	项目经理将本地仓库跟远程仓库链接起来
-a)	Git remote add 别名 url
+    - `Git remote add 别名 url`
 4.	项目经理将本地仓库推送到远程仓库
-a)	清理windows凭据
-b)	Git push 别名 分支 （输入github的用户名，密码，退完后会附带生成远程跟踪分支xxx/xxx）
+    - 清理windows凭据
+    - `Git push 别名 分支` （输入github的用户名，密码，退完后会附带生成远程跟踪分支xxx/xxx）
 5.	项目成员在自己本地克隆远程仓库
-a)	Git clone 仓库地址
-i.	默认为远程仓库配了别名origin 
-ii.	附带生成远程跟踪分支xxx/xxx
+    - `Git clone 仓库地址`
+        - 默认为远程仓库配了别名origin 
+        - 附带生成远程跟踪分支xxx/xxx
 6.	项目成员做出贡献
-a)	Git add
-b)	Git commit
-c)	Git push 别名 分支（输入github的用户名，密码）
+    - `Git add`
+    - `Git commit`  
+    - `Git push` 别名 分支（输入github的用户名，密码）
 7.	项目经理更新修改
-a)	Git fetch 别名（将修改同步到远程跟踪分支上）
-b)	Git merge远程跟踪分支（将同步了的远程跟踪分支与本地分支合并）
+    - `Git fetch 别名`（将修改同步到远程跟踪分支上）
+    - `Git merge远程跟踪分支`（将同步了的远程跟踪分支与本地分支合并）
 
-深入理解远程库
-远程跟踪分支
+### 深入理解远程库
+#### 远程跟踪分支
 1.	远程跟踪分支是远程分支状态的引用，它们是不能自己移动的，在每次网络通信操作时，自动移动
 2.	如果本地分支没有跟踪任何远程跟踪分支的话，是无法进行网络通信操作的
 3.	一个本地分支怎么去跟踪一个远程跟踪分支
-a)	当克隆的时候，会自动生成一个master本地分支（已经跟踪了对应的远程跟踪分支）
-b)	在新建其他分支的时候，可以指定想要跟踪的远程跟踪分支
-i.	Git checkout -b 本地分支名 远程跟踪分支名
-ii.	或者 git checkout - -track 远程跟踪分支名（创建一个跟远程分支同一个名字的本地分支和远程跟踪分支，并让本地分支跟踪远程跟踪分支）
-1.	如果没有对应的远程跟踪分支的话，可以用git fetch去远程仓库拿
-c)	将一个已经存在的本地分支名，跟踪一个远程跟踪分支
-i.	Git branch -u 远程跟踪分支名
-ii.	没有远程跟踪分支的话，无法进行git push,pull操作
-d)	可以用gir branch -vv 查看当前分支所跟踪的远程跟踪分支
+    - 当克隆的时候，会自动生成一个master本地分支（已经跟踪了对应的远程跟踪分支）
+    - 在新建其他分支的时候，可以指定想要跟踪的远程跟踪分支
+        - `Git checkout -b `本地分支名 远程跟踪分支名
+        - 或者 `git checkout --track` 远程跟踪分支名（创建一个跟远程分支同一个名字的本地分支和远程跟踪分支，并让本地分支跟踪远程跟踪分支）
+4.	如果没有对应的远程跟踪分支的话，可以用`git fetch`去远程仓库拿
+    - 将一个已经存在的本地分支名，跟踪一个远程跟踪分支
+        - `Git branch -u 远程跟踪分支名`
+        - 没有远程跟踪分支的话，无法进行`git push`,`git pull`操作
+        - 可以用`gir branch -vv `查看当前分支所跟踪的远程跟踪分支
 
-冲突
-1.	当git pull的时候，没有将暂存区的内容提交时，会冲突
-2.	当git push的时候，远程仓库的内容已经被修改的时候，会冲突
+#### 冲突
+1.	当`git pull`的时候，没有将暂存区的内容提交时，会冲突
+2.	当`git push`的时候，远程仓库的内容已经被修改的时候，会冲突
 
-删除远程分支
-4.	Git push 仓库别名 - -delete 远程分支
-5.	Git remote prune 仓库别名- -dry-run   ：列出已经不存在的运程仓库上，仍在跟踪的无用分支
-6.	Git remote prune 仓库别名 : 清楚上面列出的无用分支
+#### 删除远程分支
+4.	`Git push 仓库别名 --delete 远程分支`
+5.	`Git remote prune 仓库别名--dry-run`   ：列出已经不存在的运程仓库上，仍在跟踪的无用分支
+6.	`Git remote prune 仓库别名` : 清楚上面列出的无用分支
 
-Pull request
-7.	可以通过fork别人的项目，修别人的bug，给别人提request。（此步骤可以用github操作，不需要命令行）
+#### Pull request
+7.	可以通过`fork`别人的项目，修别人的bug，给别人提request。（此步骤可以用github操作，不需要命令行）
 8.	一般只有大神才会用到。。
