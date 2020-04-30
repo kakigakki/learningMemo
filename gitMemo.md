@@ -215,8 +215,23 @@ a)	`git clone`下来的远程仓库的别名，自动设置成origin
 1. `git checkout `后面也可以跟提交对象的hash值，让HEAD移动到对应提交对象
 2. `git branch -f xxxx HEAD~3 ` 强制移动分支xxxx到前三个提交对象身上
 3. `git branch -f xxxx 提交对象hash ` 强制移动分支xxxx到某个提交对象
-4. `git checkout HEAD^` 移动HEAD到上一个提交对象上
+4. `git checkout HEAD^[HEAD~]` 移动HEAD到上一个提交对象上
+    - ~后面跟数字表示移动几个提交对象
+    - ^后面跟数字表示移动第几个父提交（当前提交类型为合并提交的情况下）
+    - 如 `git checkout HEAD~2^2` 表示向上移动两个提交对象，然后在二叉口，移动到第二个父提交对象
+        - 正如你所见，此命令支持链式调用
 5. `git reset HEAD^` 将提交对象重置回上一次提交对象
 6. `git revert HEAD^` 创建一个新的提交对象，这个提交对象是上一个提交对象的复刻，此方法比较安全。
 7. `git cherry-pick [hash或者分支名] [hash或者分支名]`  此命令可以在当前分支获取其它分支的正在进行的代码，可以接多个commitHash，命令中接了几个commitHash,就会获得几个提交对象。
-8.
+    - `cherry-pick`还可以让master分支直接去拿多个分支，合成大分支
+8. `git rebase branchName` 将当前的分支线上的若干个目标分支线上不存在的提交对象的code与目标分支的code结合，并在目标分支下面生成若干个提交对象，提交对象上的还是当前分支
+    - 情景：假如自己开发的分支开发到一半，然后之前的master分支已经被提交过，这时需要提交完的master分支中自己分支里没有的代码时，就可以用这个命令，轻松获得
+    - `git rebase 分支1 分支2` 在分支2下生成分支1和分支2结合的提交对象
+9. `git rebase -i HEAD~4` 可以指定当前提交对象之前的若干个提交对象，
+    - 这些提交对象可以排序，也可以删减。来构建自己想要rebase的提交对象顺序和个数
+    - `git cherry-pick`在知道hash的情况下牛逼，相反，这个命令是在不知道hash的情况下牛逼，总之两个挺像的
+10. `git rebase xxxx master` 当处在xxxx分支上，且想要与master合并时，此步骤可以代替下面两步
+    - `git checkout master`
+    - `git merge xxxx`
+11. 一般能用hash值直接定位的地方，也能用`HEAD~`配合`HEAD^`来找该地方（相对位置找法）
+12. 一般能用hash值的命令也能用分支名字
