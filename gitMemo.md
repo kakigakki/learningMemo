@@ -210,3 +210,13 @@ a)	`git clone`下来的远程仓库的别名，自动设置成origin
 #### Pull request
 7.	可以通过`fork`别人的项目，修别人的bug，给别人提request。（此步骤可以用github操作，不需要命令行）
 8.	一般只有大神才会用到。。
+
+### 学习过程笔记
+1. `git checkout `后面也可以跟提交对象的hash值，让HEAD移动到对应提交对象
+2. `git branch -f xxxx HEAD~3 ` 强制移动分支xxxx到前三个提交对象身上
+3. `git branch -f xxxx 提交对象hash ` 强制移动分支xxxx到某个提交对象
+4. `git checkout HEAD^` 移动HEAD到上一个提交对象上
+5. `git reset HEAD^` 将提交对象重置回上一次提交对象
+6. `git revert HEAD^` 创建一个新的提交对象，这个提交对象是上一个提交对象的复刻，此方法比较安全。
+7. `git cherry-pick [hash或者分支名] [hash或者分支名]`  此命令可以在当前分支获取其它分支的正在进行的代码，可以接多个commitHash，命令中接了几个commitHash,就会获得几个提交对象。
+8.

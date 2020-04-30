@@ -156,13 +156,29 @@ Document.documentElement.scrollTop || document.body.scrollTop
 2.	` getBoundingClientRect`配合解构赋值特别爽
 
 ### 17 - Sort Without Articles
-1.	主要是用sort的方法，当return a-b时升序，当b-a时降序
-2.	` codePointAt` 替代` charcodeAt`方法，能更精准的查找字符
-3.	用string的实例方法replace配合正则去替换the an a，然后再排序
+1. 主要是用sort的方法，当return a-b时升序，当b-a时降序
+2. `codePointAt` 替代`charcodeAt`方法，能更精准的查找字符
+3. 用string的实例方法replace配合正则去替换the an a，然后再排序
 
 ### 18- AddingUpTimesWithReduce
 1.	利用reduce第二个参数的init值，将其设为对象，可以很好的统计结果，跟map有点类似
 2.	利用padStart可以补位
+
+### 19-Webcam Fun 
+1. 当两个数值需要到达临界值互换值时，利用Math.min() Math.max(),可以无脑对调两个数值
+2. `Navigator.mediaDevices.getUsermedia(constraint)`返回一个`promise`对象
+    - 返回的`promise`对象的`then`方法中获得一个`mediaStream`对象，这个对象就是用户的media
+    - 将`mediaStream`对象赋值给`video.srcObj`，然后`video.play()`就能够看到用户的摄像头了
+    - `canvas`的上下文对象的`drawImage()`第一个参数能够传视频对象，获取当前帧的图像
+3. `canvas`上下文对象操作图片主要有下面几个方法
+    - `drawImage(img,x,y,width,height)` 获取一个imgData对象，里面包含一个data数组，数组里面是图片所有像素点的rgba
+        - x为canvas距离原点的偏移值
+        - y为canvas距离原点的偏移值
+        - width，height 是该图片显示大小
+    - `putImageData(img,x,y)` 将图片放入canvas中
+        - x为canvas距离原点的偏移值
+        - y为canvas距离原点的偏移值
+    - `getImageData(x,y,width,height)` 获取canvas中的图片，一般是接下来对该图片进行像素操作，然后再用`putImageData(img,x,y)`放回去
 
 
 
