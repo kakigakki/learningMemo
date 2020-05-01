@@ -235,3 +235,22 @@ a)	`git clone`下来的远程仓库的别名，自动设置成origin
     - `git merge xxxx`
 11. 一般能用hash值直接定位的地方，也能用`HEAD~`配合`HEAD^`来找该地方（相对位置找法）
 12. 一般能用hash值的命令也能用分支名字
+
+### 学习过程笔记2
+1. 远程跟踪分支是无法进行手动更新的，只能保持上一次通信时的状态。
+2. 如果`git checkout 远程跟踪分支`的话，会产生HEAD分离
+    - 即变成了`git checkout HEAD`
+3. `git fetch`
+    - 与远程仓库进行通信
+    - 更新远程跟踪分支
+    - **注意**：`git fetch` 并不会去改变本地仓库分支的位置。就是单纯的更新的远程跟踪分支。
+    - 即：把远程分支上的内容给下载到了远程跟踪分支上而已。没有再进行其他的操作了。
+4. git pull
+    - `git fetch` + `git merge`
+    - `git fetch`只是下载。`git pull`是下载+合并
+5. git pull --rebase
+    - `git fetch` + `git rebase`
+6. `git merge` 与git rebase的优缺点
+    - `git merge` 保留提交树的历史，有时候可能看起来很乱
+    - `git rebase` 所有提交都在一条树上，不保留历史。看起来更简洁
+
