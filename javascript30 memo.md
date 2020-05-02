@@ -180,6 +180,19 @@ Document.documentElement.scrollTop || document.body.scrollTop
         - y为canvas距离原点的偏移值
     - `getImageData(x,y,width,height)` 获取canvas中的图片，一般是接下来对该图片进行像素操作，然后再用`putImageData(img,x,y)`放回去
 
+### 20 - Speech Detection
+1.  主要是熟悉`window.SpeechRecognition`的api，可以用来识别语音
+```JS
+   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+   let recognition = new SpeechRecognition()
+```
+### 21 - Geolocation
+1.  主要是熟悉` navigator.geolocation.getCurrentPosition()`的api。可以用来判断当前地理位置
+    - 第一参数：success的回调
+        - 唯一参数 `position`对象中的`coords`属性，带有当前位置的各种属性
+    - 第二参数：error的回调
+    - 第三参数：options的值
+
 
 
 

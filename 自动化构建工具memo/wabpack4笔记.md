@@ -33,7 +33,7 @@
     - 所有构建工具都是基于node.js平台运行的，所以模块化默认采用commonJS
         ```js
          //resolve模块需要导入，属于node核心模块，用来拼接路径
-        const resolve = require("path")
+        const {resolve} = require("path")
         module.expots={
             //css的样式文件可以通过import导入js中
             entry :"./src/index.js",
@@ -86,7 +86,7 @@
 ### 3.打包html资源
 1.  需要下载html-webpack-plugin插件
     ```JS
-    const resolve = require("path")
+    const {resolve} = require("path") //解构赋值方式，拿到path对象的resolve方法
     const htmlWebpackPlugin = require("html-webpack-plugin")
         module.expots={
             entry :"./src/index.js",
@@ -154,13 +154,13 @@ module.exports = {
                     //[ext]取文件的原来的扩展名
                     name:"[hash:10].[ext]",
                     //指定输出到bulid文件夹的哪里
-                    outputPath : "imgs/"
+                    outputPath : "imgs"
             }
             },
             //处理html中的图片资源，需要用html-loader
             {
                 test : /\.html$/
-                use :"html-loader"
+                loader :"html-loader"
 
             }
         ]
@@ -184,7 +184,7 @@ module.exports = {
                     loader :"file-loader"
                     options :{
                         name :"[hash:10][ext]"
-                        outputPath : "medias/"
+                        outputPath : "medias"
                     }
                 }
             ]
@@ -220,6 +220,7 @@ module.exports = {
 4. index.html中的css,js引入都引入到index.js中。如果html中有图片引入的话，需要配置html-loader，否则不用。
 5. 配置config.js
 6. [详细的视频地址](https://www.bilibili.com/video/BV1e7411j7T5?p=10)
+7. 完整配置参照项目
 
 ## 生产环境的配置
 ### 单独生成一个css文件
@@ -252,3 +253,190 @@ module.exports = {
             )
         }
         ```
+### css的兼容性处理
+1.  css的兼容性处理:postcss
+    - postcss-loader
+    - postcss-preset-env
+        - 帮助postcss找到package.json中的browserslist里面的配置,通过配置加载指定的css兼容性样式
+            ```js
+            "browerslist":{
+                "development":[
+                    "last 1 chrome version",
+                    "last 1 firefox version",
+                    "last 1 safari version",
+                ],
+                //生产环境配置(默认)
+                "production":[
+                    ">0.01%",
+                    "not dead",
+                    "not op_mini all"
+                ]
+            }
+            ```
+        - browserslist默认是生效生产环境,如果需要在开发环境生效的话需要在webpack.config.js的全局作用域上配置
+            ```JS
+            process.env.NODE_ENV = "development"
+            ```
+    - 在config.js中配置loader
+        ```js
+        rules:[
+            {
+                ...
+                use:[
+                    "css-loader",
+                    {
+                        loader:"postcss-loader",
+                        options:{
+                            ident:"postcss",
+                            plugins:()=>[
+                                //postcss的插件
+                                require("postcss-preset-env")
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+        ```
+### 压缩css
+1.  下载插件OptimizeCssAssetsWebpackPlugin
+2.  引入插件
+3.  创建该插件的构造函数
+
+### js的语法检查Eslint
+1.  下载`eslint-loader` `eslint`
+    ```js
+    module:{
+        rules:[
+            {
+                test :/\.js$/,
+                exclude :/node_modules/, //不检查第三方模块
+                loader :"eslint-loader",
+                options :{
+                    fix :true //遇到不规范语句,自动修复
+                }
+                
+            }
+        ]
+    }
+    ```
+2.  设置检查规则
+    - `package.json`中的`eslintConfig`中设置
+        ```js
+        eslintConfig:{
+            //设置eslint的检查规则
+        }
+        ```
+    - 可以用airbnb写的规则
+        - 下载,依赖`eslint-config-airbnb-base`
+        - 下载,依赖` eslint-plugin-import`
+    - 配置`eslintConfig`:`extends : airbnb-base`
+3. 如果不希望eslint检查某些语句的话可以在那些语句上加下面注释
+    ```js
+    //eslint-disable-next-line
+    ```
+### js的兼容性处理
+
+1.  js兼容处理工具:`babel-loader` `@babel/preset-env` `@babel/core`
+    - 第一种方案:基本js兼容性处理 `@babel/preset-env`
+        - 问题:只能转换基本语法,es6的新增函数,对象无法转换,如`promise`
+            ```js
+            module:{
+                rules:[
+                    {   
+                        test :/\.js$/,
+                        exclude : /node_modules/
+                        loader :"babel-loader",
+                        options:{
+                            //预设:指示babel做怎么样的兼容性处理
+                            presets :[
+                                ["@babel/preset-env"]
+                            ]
+                        }
+                    }
+                ]
+            }
+            ```
+    - 第二种方案:全部js兼容性处理: `@babel/polyfill`
+        - 该模块不需要在config.js中配置,直接导入index.js中
+        - 问题:将所有兼容性代码全部引入,体积很大
+            ```js
+            import "@babel/polyfill"
+            ```
+    - 第三种方案:(**推荐**)需要做兼容性处理的就做,按需加载:利用 `core-js`模块
+        - 使用此方案时,不能再在index.js中引入 `@babel/polyfill`
+            ```js
+            module:{
+            rules:[
+                {   
+                    test :/\.js$/,
+                    exclude : /node_modules/
+                    loader :"babel-loader",
+                    options:{
+                        //预设:指示babel做怎么样的兼容性处理
+                        presets :[
+                            ["@babel/preset-env",
+                            //下面代码为第三种方案的代码
+                            {
+                                //按需加载兼容性代码
+                                useBulitIns :"usage",
+                                //指定core-js版本
+                                corejs:{
+                                    version:3
+                                },
+                                //指定兼容性做到哪个版本浏览器
+                                targets :{
+                                    chrome :"60",
+                                    firefox :"50",
+                                    ie :"9",
+                                    safari :"10",
+                                    edge :"17"
+                                }
+                            }]
+                        ]
+                    }
+                }
+            ]
+        }
+            ```
+### js压缩,Html压缩
+1.  js的压缩只需要将mode设成生产环境
+    ```js
+    mode :"production"
+    ```
+2.  html的压缩需要在HtmlWebpackPlugin插件中设置
+    ```js
+        plugins :[
+            new HtmlWebpackPlugin({
+                template :"./src/index,html",
+                //压缩html代码
+                minify:{
+                    //移除空格
+                    collapseWhitespace : true,
+                    //移除注释
+                    removeComments :true
+                }
+            })
+        ]
+    ```
+
+### 生产环境的基本配置
+1.  用`MiniCssExtractPlugin`插件来给less,css提取成单独css文件
+2. 用`postcss-loader`设置css的兼容性处理
+3. 用`OptimizeCssAssetWebpackPlugin`来压缩css文件
+4. 用`eslint-loader`来检查js文件
+5. 用`babel-loader`给js做兼容性处理
+6. 当一个文件要被多个loader处理的时候,一定要制定loader执行的先后顺序
+    - 对于js文件先这行`eslint-loader` 在执行 `babel-loader`
+        ```js
+        rules:[
+            {   
+                ...
+                loader:"eslint-loader",
+                //表示先执行这个Loader
+                enforce:"pre"
+                ...
+            }
+        ]
+        ```
+7. 用`HtmlWebpackPlugin`给html压缩

@@ -253,4 +253,3 @@ a)	`git clone`下来的远程仓库的别名，自动设置成origin
 6. `git merge` 与`git rebase`的优缺点
     - `git merge` 保留提交树的历史，有时候可能看起来很乱
     - `git rebase` 所有提交都在一条树上，不保留历史。看起来更简洁
-
