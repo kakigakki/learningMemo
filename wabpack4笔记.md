@@ -440,3 +440,328 @@ module.exports = {
         ]
         ```
 7. 用`HtmlWebpackPlugin`给html压缩
+
+
+## 开发环境的性能优化
+### 优化打包构建速度
+#### webpack的HMR功能
+1.  全称: hot module replacement
+2.  模块热加载,一个模块发生变化,只会重新打包这一个模块,而不是所有模块,极大提高了构建速度
+3. 在config.js配置devserver属性中加hot属性
+    ```js
+        devserver :{
+            ...
+            hot :true
+        }
+    ```
+4. webpack构建的项目中
+    - css文件默认有HMR功能,style-loader内部实现了
+    - js文件默认不使用HMR功能
+        - 需要在入口js文件上写方法去监听其他模块的js文件
+            ```js
+            //一旦 module.hot为true,说明开启了devserver上的HMR功能
+            if(module.hot){
+                //然后用accept方法监听其他js文件,一旦该模块发生变化,其他的模块不会重新打包构建
+                module.hot.accept("./moduleOne.js",function(){})
+            }
+            ```
+        - 入口js文件修改了的话,无论如何其他模块也会重新打包构建(入口js文件无法HMR加载)
+    - html文件不能使用HMR功能,同时会导致问题:html文件不能热更新(现在的应用html都是只有一个,所以不需要HMR功能)
+        - 解决 : 修改entry入口,将html文件引入
+
+### 优化代码调试
+#### source-map
+
+1.  一种提供源代码到构建后代码映射的技术(如果后代码出错了,通过映射可以追踪到源代码的错误)
+2. 在config.js文件中增加devtool属性
+    ```js
+    devtool :"source-map"
+    ```
+3. `source-map`类型
+    - `source-map`
+        - 外部
+        - 准确提示源代码的错误文件,错误行数
+    - `inline-source-map` :
+        - 只生成一个大的内联map
+        - 准确提示源代码的错误文件,错误代码行和列
+    - `hidden-source-map`:
+        - 外部
+        - 不能追踪源代码错误,只能提示到构建后代码的错误位置(防止代码泄露)
+        - 只隐藏源代码
+    - `eval-source-map` :
+        - 每个源模块文件对应生成一个内联map
+        - 准确提示源代码的错误文件,错误行数
+    - `nosources-source-map`
+        - 外部
+        - 能找到错误代码准确信息,但不能追踪到源代码(防止代码泄露)
+        - 全部隐藏
+    - `cheap-source-map`
+        - 外部
+        - 准确提示源代码的错误文件,只提示错误代码**行**
+    - `cheap-module-source-map`
+        - 外部
+        - 准确提示源代码的错误文件,只提示错误代码**行**
+        - module会将loader的source map加入
+4. 如何使用`source-map`
+    - 开发环境 :需要速度快,调试更友好
+        - `eval-source-map`
+        - `eval-cheap-module-source-map`
+    - 生产环境: 源代码要不要隐藏?调试要不要更友好?
+        - 内联map会让代码体积变大,所以生产环境下不用内联
+        - 如果需要隐藏用
+            - `nosources-source-map`
+            - `hidden-source-map`
+        - 一般用`source-map`就行
+
+## 生产环境的性能优化
+### 优化打包构建速度
+#### oneof的使用
+
+1.  正常来讲一个类型的文件只需要匹配一个`rules`里的`loader`
+2. 此时用oneOf来优化
+    ```js
+     rules:[
+         {  
+             //注意,oneOf里面一定不能有两个配置处理同一种类型的文件
+             oneOf:[
+                {
+                    test:xxx,
+                    use:["xxx","xxx"]
+                },
+                {...},
+                {...}
+             ]
+         }
+     ]
+    ```
+
+#### babel缓存
+1.  babel缓存
+    - 在生产环境中,如果改一个js代码,不打算重新构建所有代码时,可以使用babel缓存
+        ```js
+        {
+            ...
+            loader:"babe-loader",
+            options:{
+                presets:[...],
+                cacheDirectory :true
+            }
+        }
+        
+        ```
+    - **作用** :此缓存让第二次打包构建速度更快
+#### 多进程打包
+1. 下载`thread-loader`
+2. 一般跟`babel-loader`一起使用,放在`babel-loader`的前面
+3. **注意事项**
+    - 进程启动大概为600ms,所以进程通信启动也有开销
+    - 只有工作消耗时间比较长,才需要多进程打包
+4. 使用:
+    ```js
+        {
+            loeder:"thread-loader",
+            options:{
+                workers :2 //开启两个进程2
+            }
+        }
+    ```
+#### externals
+1. 在config.js中配置`externals`属性
+    ```js
+        //拒绝jquery打包
+        externals :{
+            jquery :"jQuery"
+        }
+    ```
+2.  注意:库被拒绝打包的情况下,需要手动在源代码的html中引入cdn链接调用这些库
+
+#### dll技术
+1. `dll`技术,对某些库(jquery,react,vue...)进行单独打包
+    - 如果用`cdn链接调用第三方库的话`的话,不需要用`dll`,用`externals`就行
+2. 与`externals`区别:
+    - dll技术:相当于对库提前打包,然后每次要用的时候直接拿就行,不用每次都对库进行打包,提高打包速度
+    - externals技术: 完全不对库进行打包
+3. 使用
+    1. 在`webpacl.dll.js`的配置文件中配置
+        - `webpacl.dll.js`是对第三方库进行单独处理时的配置文件
+        ```js
+            const webpack = require("webpack")
+            const {resolve} = require("path")
+            module.exports = {
+                entry : {
+                    //属性名:最后打包生成的名字: jquery
+                    //属性值: 需要打包的库名 "jquery"
+                    jquery :["jquery"]
+                },
+                output:{
+                    //[name]为entry定义的属性名
+                    filename : "[name].js",
+                    path :resolve(__dirname,"dll"),
+                    //打包的库里面向外暴露出去的内容叫什么名字
+                    library :"[name]_[hash:10]"
+                },
+                plugins:[
+                    //打包生成一个manifest.json,提供与jquery映射
+                    new webpack.DllPlugin({
+                        //映射库中暴露的名字
+                        name : "[name]_[hash:10]",
+                        //输出的文件路径
+                        path :resolve(__dirname,"dll/manifest.json")
+                    })
+                ]
+            }
+        ```
+        - 运行`webpack --config webpacl.dll.js`
+            - 因为运行webpack默认打包`webpack.config.js`,所以需要打包`webpack.dll.js`时,需要指定
+    - 在`webpack.config.js`中加插件,告诉主配置文件,哪些第三方包需要引用
+        ```js
+            plugins :[
+                //告诉webpack哪些库不参与打包,同时使用时名字也得变
+                new webpack.DllReferencePlugin({
+                    manifest :resolve(__dirname,"dll/manifest.json")
+                })
+                //将之前在webpack.dll.js中打包的库引进来调用
+                new AddAssetHtmlWebpackPlugin({
+                    filepath :resolve(__dirname,"dll/jquery.js")
+                })
+            ]
+        ```
+### 优化代码运行的性能
+#### 文件资源缓存(浏览器默认)
+1. **问题**:文件名字如果不变,缓存就不会变,导致服务器上的修改无法及时反映到浏览器的缓存
+2. **解决**:每次打包时自动修改文件名,
+    - 给文件名加一个hash值
+    - 此hash值为webpack每次打包产生的hash值
+        - hash值`[hash:10]`  :每次打包生成的唯一hash值
+        - chunkhash值`[chunkhashhash:10]`: 根据同一个entry生成的hash值
+        - contenthash值 `[contenthash:10]` : 根据文件内容生成的hash值.不同文件hash值一定不一样
+    - 除了contenthash值都有**问题**: js和css同时使用一个hash值,如果只修改了一种文件然后重新打包,js,css文件的缓存都会失效
+3. **作用** :此缓存让代码上线运行时,缓存更好的被利用
+
+#### tree shaking(树摇)
+1.  前提:
+    - 必须使用es6环境
+    - 开启production模式
+2. 作用: 减少代码体积
+3. 最好在在package.json中配置sideEffects,否则可能会因为版本原因打包的时候把css之类的文件给删掉
+    ```js
+    sideEffects:["*.css","*.less"]
+    ```
+
+#### code split(代码分割)
+1.  **第一种方式**:配置多入口(entry)
+    - 单入口
+    ```js
+    entry :"xxx"
+    ```
+    - 多入口
+    ```js
+    entry :{
+        main :"xxx",
+        test :"xxx"
+    },
+    output :{
+        //[name]表示取入口文件的文件名
+        filename :"js/[name].js"
+    }
+    ```
+2. **第二种方式**:在`config.js`中配置`optimization`属性
+    - 可以将node_modules中的代码单独打包成一个文件
+    - 可以自动分析多入口chunk中,有没有公共的文件,如果有就会打包成单独的一个chunk
+    ```js
+    optimization :{
+        splitChunks:{
+            chunks :all
+        }
+    }
+    ```
+3. **第三种方式**:通过js代码,让某个文件被单独打包成一个chunk
+    - import动态导入语法,**不需要配置config.js成多入口**
+    ```js
+        import(/* webpackChunkName = "test"*/"xxx").then((module)=>{
+            //promise对象参数是xxx.js的module对象
+            //文件加载成功
+        }).catch(()=>{
+            //文件加载失败
+        })
+    ```
+    - `/* webpackChunkName = "tetst"*/` 在导入文件参数前加此**注释**可以给打包成的chunk命名
+
+#### lazy loading(懒加载)
+1. 让页面需要用到某个js文件时,才加载这个js文件.而不是一上来就加载全部js文件
+2. 还是通过import动态导入语法,来实现懒加载
+    ```js
+        document.querySelector(".btn").onclick = function(){
+            import(/* webpackChunkName = "test"*/"xxx").then((module)=>{
+                //promise对象参数是xxx.js的module对象
+                //文件加载成功
+                //调用xxx.js文件中的print()方法
+                module.print("懒加载成功")
+            }).catch(()=>{
+                //文件加载失败
+            })
+
+        }
+    ```
+#### prefetch(预加载)
+1. 会在使用某个js文件之前,提前加载js文件
+2. 与正常加载的区别
+    - 正常加载为并行加载(同一时间加载多个文件)
+    - 预加载时等其他资源加载完毕,浏览器空闲了,再偷偷加载资源
+    - 有兼容性的问题,一般只有pc浏览器采用
+2. 还是通过import动态导入语法,来实现预加载,与懒加载只区别于一段注释`/* webpackPrefetch :true */`
+    ```js
+        document.querySelector(".btn").onclick = function(){
+            import(/* webpackChunkName = "test",webpackPrefetch :true*/"xxx").then((module)=>{
+                ...
+            }).catch(()=>{
+                ...
+            })
+        }
+    ```
+#### PWA:渐进式网络开发应用程序(离线可访问)
+1. workbox
+    - 下载workbox-webpack-plugin
+2. 使用:
+    - 在`config的plugin`中配置并启动`serviceWorker`
+        ```js
+            plugin :[
+                new WorkboxWebpackPlugin.GenerateSW({
+                    //帮助serviceWorker快速启动
+                    //删除旧的serviceWorker
+                    //生成一个serviceWorker配置文件
+                    clientsClaim:true,
+                    skipWaiting :true
+                })
+            ]
+        ```
+    - 在入口js文件中使用`serviceWorker`
+        ```js
+        //需要判断浏览器是否支持
+        if(serviceWorker in navigator){
+            //当页面加载完成时回调
+            window.addEventListener("load",()=>{
+                //注册用WorkboxWebpackPlugin.GenerateSW插件配置完成的service-worker
+                navigator.serviceWorker.register("./service-worker.js").then(()={
+                    //注册成功
+                }).catch(()=>{
+                    //注册失败
+                })
+            })
+        }
+        ```
+3. **注意事项**: 
+    - eslint不认识window,navigator等浏览器的全局变量,需要配置`package.json`
+        ```js
+        eslintConfig:{
+            ...
+            "env" :{
+                browser :true
+            } 
+        }
+        ```
+    - serviceWorker必须运行在服务器上
+        - 第一种开启服务器方式:使用node.js打开服务器
+        - 第二种开启服务器方式:下载serve包来开启服务器(遍历)
+            - `npm i serve -g` 必须全局下载
+            - `serve -s bulid` 启动服务器,将bulid目录下的所有资源作为静态资源暴露出去
