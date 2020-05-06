@@ -765,3 +765,146 @@ module.exports = {
         - 第二种开启服务器方式:下载serve包来开启服务器(遍历)
             - `npm i serve -g` 必须全局下载
             - `serve -s bulid` 启动服务器,将bulid目录下的所有资源作为静态资源暴露出去
+
+## webpack的详细配置
+### entry
+1.  入口起点：
+    1. string :`./src/index.js`
+        - 单入口
+        - 打包形成一个chunk,输出一个bundle文件
+        - chunk的名称默认是main
+    2. array :`["./src/index.js","./src/add.js"]`
+        - 多入口
+        - 所有入口文件最终形成一个chunk,输出一个bundle文件
+        - 一般在HMR功能中让html热更新生效
+    3. object :`{main: "./src/index,js",add:"./src/add.js"}`
+        - 多入口
+        - 有几个入口文件,就形成几个chunk,同时输出几个bundle文件
+        - chunk的名称为定义的属性名
+    4. object时的特殊用法 : 
+    ```js
+    {jquery :["jqeury"],
+    react:["react-xxx","react-yyy"]}
+    ```
+### output
+1. filename :指定输出的文件名称(指定名称+目录)
+2. path : 指定输出文件目录(将来所有资源输出的公共目录)
+3. publicPath: 指定所有资源引入公共路径的前缀.一般设置为`"/"`
+4. chunkFilename : 指定非入口chunk的名称
+    - 通过import直接引入js代码的js文件,或者通过optimization配置的node_modules的js文件
+5. library : 指定打包的文件向外暴露出去的变量名
+    - 如果没设置的话,打包完的js文件是匿名的
+    - 一般配合dll技术打包第三方库使用
+6. libraryTarget : 指定通过哪种规范暴露出去
+    - commonjs 变量名以commonjs的规范暴露出去
+    - window  变量名添加到window上
+    - global 变量名添加到node上
+### module
+1.  基本上只适用rules
+2. rules中配置loader
+    1. test : 检查哪些文件
+    2. use : 用哪些loader
+    3. exclude : 排除哪些文件
+    4. include : 传一个路径,只查该路径下的文件
+    5. loader : 单个loader的情况下用此属性,否则用use
+    6. enforece :
+        - pre  优先执行
+        - post 延后执行
+    7. oneOf:该属性下的loader配置只会生效一个
+ ### resolve :配置解析模块的规则
+ 1. alias :配置解析模块路径别名 :
+    - 优点: 简写路径
+    - 缺点 : 写路径无提示
+    ```js
+    resolve :{
+        alias :{
+            $css : resolve(__dirname,"src/css")
+        }
+    }
+    ```
+    - 配置完以上代码后,源代码中的js文件引入css文件只需要写`import "$css/xxxx.css"`
+2. extensions : 配置省略文件路径的后缀名
+    ```js
+    extensions :[".js",".json",".css"]
+    ```
+3. modules : 指定去哪个目录找webpack命令
+    ```js
+    modules :resolve(__dirname,"../../node_modules")
+    ```
+### devServer
+1.  contentBase : 运行代码的目录
+    ```js
+    contentBase : resolve(__dirname ,"build")
+    ```
+2. compress : 启动.gzip压缩
+    - `true`
+3. port: 指定端口号
+    - `"50000"`
+4. host : 指定域名
+    - `"localhost"`
+5. open : 是否自动打开浏览器
+    - `true`
+6. hot : 是否开启HMR功能
+    - `true`
+7. watchContentBase : 监视contentBase目录下的所有文件,一旦文件变化就会reload
+    - `true`
+8. watchOptions :监视文件时忽略文件
+    ```js
+    watchOptions:{
+        //一点要忽略node_modules
+        ignored :"/node_modules/"
+    }
+    ```
+8. clientLogLevel :不要显示启动服务器日志信息
+    - `"none"`
+9. quiet :除了一些基本启动信息,其他内容都不要显示
+    - `true`
+10. overlay : 如果出错了,不要全屏提示
+    - `false`
+11. proxy :服务器代理,解决开发环境跨域问题
+    ```js
+    proxy:{
+        //一旦devServer(5000)服务器接收到了api/xxx的请求,就会把请求转发给另一个服务器(3000)
+        "/api":{
+            target :"http://localhost :3000",
+            //服务器3000发送请求时,请求路径重写:api/xxx --> xxx(去掉api)
+            pathRewrite :{
+                "^/api":""
+            }
+        }
+    }
+    ```
+### optimization
+1.  splitChunks : 分割成多个chunk 
+    - 一般需要把node_modules的文件单独打包成chunk时设置
+    ```js
+    optimization:{
+        splitChunks:{
+            chunks :"all"
+        }
+    }
+    ```
+   -  splitChunks的默认值
+    ![20200504182552](https://raw.githubusercontent.com/kakigakki/picBed/master/imgs/20200504182552.png)
+2.  runtimeChunk : 将当前模块记录其他模块的hash单独打包为一个文件
+    ```js
+    runtimeChunk:{
+        name : entrypoint => `runtime-${entrypoint.name}`
+    }
+    ```
+    - 如果不设置这个选项的话,当一个文件import引入第二个文件时,而这两个文件的名字都是用contenthash值命名的话,当第二个文件内容修改了重新打包了,hash值发生变化,第一个文件因为引入了第二个文件,所以第一个文件内的第二个文件的名字也发生变化,导致了第一个文件的内容也发生变化,这时导致了构建时的缓存失效,构建速度就变慢了
+3. minimizer :配置生产环境的压缩方案 : js和css
+    - 比上文介绍的OptimizeCssAssetsWebpackPlugin更好用
+    - webpack4.2.x版本以上支持
+    ```js
+    minimizer:[
+        new TerserWebpackPlugin({
+            //开启缓存
+            cache :true,
+            //开启多进程打包
+            parallel :true,
+            //启动source-map
+            sourceMap :true
+        })
+    ]
+    ```
