@@ -214,7 +214,7 @@
     - v-for可以遍历数组也可以遍历对象
     - 遍历对象还可以写成下面类型
         ```js
-        <li v-for="(key[,value[,index]]) in info">{{key value}}</li>//key属性名,value属性值
+        <li v-for="(value[,key[,index]]) in info">{{value key}}</li>//key属性名,value属性值
         <li v-for="item in info">{{item}}</li> //如果只取item,会取属性值
         ```
     - 官方推荐使用`v-for`的时候,给对应的元素加上一个`:key`,保证虚拟DOM和页面DOM一一对应,当进行插入,更新操作时,就能更高效的更新虚拟DOM
@@ -233,6 +233,74 @@
 
 ### 阶段案例:图书购物车
 ![20200506185709](https://raw.githubusercontent.com/kakigakki/picBed/master/imgs/20200506185709.png)
+
+##理解Vue
+### v-model使用
+1. v-model具有双向绑定功能
+    ```js
+    <input type="text" v-model="msg">
+    ...
+    data:{
+        msg:"kaki"
+    }
+    ```
+    - input的值修改,data中的值也会改,反则反之
+    - `v-bind`和`{{}}`都是单向绑定,只能从model传到view
+2. v-model本质是语法糖,相当于下面两个相加
+    - v-bind单向model->view
+    - 事件绑定监听view输入值,传回给model
+3. v-model绑定在`<input type="radio">`时,单选框就不需要加name属性来互斥,两个单选框设置同一个v-model的值也有互斥的效果
+4. v-model在checkbox的使用时,可以直接将选中的多选框的值加进`v-model`的同名数组中
+    ```js
+    <input type="checkbox" value="a" v-model="letters">a
+    <input type="checkbox" value="b" v-model="letters">a
+    <input type="checkbox" value="c" v-model="letters">a
+
+    data:{
+        letters:[]
+    }
+    ```
+    - 上面代码,如果多选框被选中,`letters`数组中就会加进该多选框的value
+5. v-model用在单选框,一般设置值为布尔类型,如果用在多选框,一般设置值为数组
+6. v-model用在`select`标签中
+    - 当select只能选择一个时,v-model的值为字符串类型,值为选中的option的值
+    - 当select能选择多个时(`select`标签加`mutiple`属性),v-model的值未数组类型,数组内未选中的option的值
+
+7. 修饰符
+    - `.lazy` : 加此修饰符时,input失去焦点才更新
+    - `.number` : 指定输入的值传到model是number
+    - `.trim` : 去掉用户输入值的空格
+
+## 组件化开发
+1. 基本使用
+    - 创建组件的构造器对象
+        ```js
+        const myCom = Vue.extend({
+            template :`<div>
+                        <h2>组件1</h2>
+                        <p>组件1</p>
+                        </div>`
+        })
+        ```
+    - 注册组件:
+        ```js
+        //注册全局组件,意味着可以在多个Vue的实例下面使用
+        Vue.component("com1",myCom)
+
+        //注册局部组件
+        const app = new Vue({
+            ...
+            components :{
+                com1 : myCom
+            }
+        })
+        ```
+    - 使用组件
+        ```js
+        <div>
+        <com1></com1>
+        </div>
+        ```
 
 
 
