@@ -192,6 +192,38 @@ Document.documentElement.scrollTop || document.body.scrollTop
         - 唯一参数 `position`对象中的`coords`属性，带有当前位置的各种属性
     - 第二参数：error的回调
     - 第三参数：options的值
+### 22 - Follow Along Link Highlighter
+1. 提前创建一个相对于页面是绝对位置，且宽高都为0的样式元素，当鼠标移动到页面上的某个a标签时，设置该a标签的绝对位置和宽高给这个样式元素，就能实现跟随效果了
+2. 本挑战主要时熟练使用getBoundClientRect()方法
+
+### 23 -Speech Synthesis
+1. 熟悉speechSynthesis对象还有SpeechSynthesisUtterance对象
+
+### 24 - Sticky Nav
+1. 当`document.documentElement.scrollTop || document.body.scrollTop`滚动过的距离等于nav离视窗顶部的初始距离时。让nav的位置从relative变为fixed。
+2. 其实可以直接用`position:sticky`实现，而不需要通过js
+
+### 26 - Stripe Follow Along Nav
+1. 跟挑战22有点像，都是提前创建样式元素，将样式通过元素位置API赋给事件触发的元素
+2. clientLeft 和clientTop相当于元素的边框的长度，而不是元素到视窗的距离
+3. 需要获取元素到视窗的距离还是用`getBoundClientRect()`最方便
+4. `offsetHeight`和`offsetWidth`包括边框，但是不包括外边距（margin）
+5. `clientHeight`和`clientWidth`不包括边框，但是包括内边距
+6. `removeEventListener(type,handler)` 需要穿两个参数，一个是绑定的事件名字，一个是想要清除事件的回调函数，但是如果回调函数是匿名的话，可以用`arguments.caller`替代
+
+### 27- Click and Drag
+1. `overflow`可以有分为`overflow-x 和overflow-y` ,值跟`overflow`一样
+    - hidden
+    - scroll
+    - visible
+2. `white-space`:
+    - nowrap 
+        - 配合`overflow-x:scroll`就能拖动横向滚动条看到所有内容
+3. display可以设置为`inline-flex` ，让元素既是内联元素(不会占一行)，又能作为flex容器
+4. `curson:grabbing`让鼠标显示为抓手，配合鼠标点击事件奇效
+5. 
+
+
 
 
 
