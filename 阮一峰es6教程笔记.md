@@ -309,7 +309,7 @@
 1.	虽然与rest参数很像，但是有点像rest参数的逆运算
 2. Rest参数是将多个值封装成数组，传入参数
 3. …arr是将数组遍历成多个值（底层用的是iterator）
-4.  扩展运算符的应用
+4. 扩展运算符的应用
     - 复制数组：
         ```js
         const a1 = [1, 2];
@@ -358,7 +358,7 @@
         let nodeList = document.querySelectorAll('div');
         let array = [...nodeList];
         ```
-　### Array.from()
+### Array.from()
 1.	可以将两类对象转换为真正的数组
     - 类数组对象（具有length属性的对象）
         - Nodelist集合
@@ -415,8 +415,8 @@
 ## 对象的扩展
 ### 属性的可枚举性和遍历
 1.	对象的每个属性都有一个描述对象（Descriptor），用来控制该属性的行为。` Object.getOwnPropertyDescriptor`方法可以获取该属性的描述对象。
-2.	描述对象的` enumerable`属性，为“可枚举性”，如果该属性为false，则下面操作会忽略当前属性
-**目前，有四个操作会忽略enumerable为false的属性。**
+2.  描述对象的` enumerable`属性，为“可枚举性”，如果该属性为false，则下面操作会忽略当前属性
+3.  **目前，有四个操作会忽略enumerable为false的属性。**
     - ` for...in`循环：只遍历对象自身的和继承的可枚举的属性。
     - ` Object.keys()`：返回对象自身的所有可枚举的属性的键名。
     - `JSON.stringify()`：只串行化对象自身的可枚举的属性。
@@ -424,7 +424,7 @@
 3.  ES6 规定，所有 Class 的原型的方法都是不可枚举的。
     ```JS
     Object.getOwnPropertyDescriptor(class {foo() {}}.prototype, 'foo').enumerable
-// false
+    // false
     ```
 ### 属性的遍历
 1. ES6 一共有 5 种方法可以遍历对象的属性。

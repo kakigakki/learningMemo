@@ -124,7 +124,7 @@ module.exports = {
     entry :"./src/index.js",
     output:{
         //输出文件名
-        filenmae:"bulit.js" 
+        filenmae:"bulit.js"
         //输出路径
         //__dirname是模块对象的参数表当前文件的目录绝对路径
         path: resolve(__dirname,"bulid")
@@ -142,9 +142,9 @@ module.exports = {
                 test:/\.(jpg|png|gif)$/,
                 loader : "url-loader",
                 options :{
-                    //图片大小小于8kb,进行base64处理，对图片进行优化
+                    //图片大小小于8kb,进行base64处理，对图片进行优化,大于8kb时,后url-loader调用file-loader进行解析
                     //优点：减少请求数量，减轻服务器压力
-                    //缺点：图片体积会更大，文件请求速度更慢
+                    //缺点：生产的bulit.js体积会更大，文件请求速度变慢
                     limit:8*1024,
                     //问题：因为url-loader默认使用es6模块化解析，但是html-loader引入图片时commonjs模块解析，所以两个一次用时可能会出问题
                     //解决方法:关闭url-loader的es6模块化，使用commonjs
@@ -212,6 +212,17 @@ module.exports = {
 3. 特点：只会在**内存**中编译打包，不会有任何输出
     - `webpack`指令会输出一个bulid文件夹，把一大堆东西放里面
     - `npx webpack-dev-server`，只会进行打包，不会有任何输出，也就是说不会生成bulid文件夹
+
+### 7. 配置文件的分离(必要时使用)
+1. 当开发环境和生产环境需要不同的配置文件时,可以,把公共部分的配置信息抽取出来成新的配置文件`base.config.js`.
+2. 下载`npm i webpack-merge -D`库
+3. 在打算使用(生产 or 开发)的配置文件中导入`webpack-merge` `base.config.js`
+4. 调用`webpack-merge的方法`
+    ```js
+    module.exports = webpackMerge(baseConfig,{
+        ...//单独的webpack.config.js的配置
+    })
+    ```
 
 ### 7.开发环境的配置
 1. 在空文件夹下创建webpack.config.js构建配置文件
