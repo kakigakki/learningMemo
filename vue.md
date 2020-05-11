@@ -770,16 +770,37 @@
         <router-view></router-view>
     </keep-alive>
     ```
-2. 被`keep-alive`包裹的路由会有`actived()`和`deactived`的钩子函数可以调用
-3.`actived()`配合`beforeRouteLeave()`钩子函数可以保存跳转前的路由的子路由
+2. 被`keep-alive`包裹的路由会有`actived()`和`deactived()`的钩子函数可以调用
+    - `keep-alive`标签有`include exclude`属性,可以精确包含或者排除某些组件的缓存,这两个属性都是匹配组件的名字,都可以用正则
+3. `actived()`配合`beforeRouteLeave()`钩子函数可以保存跳转前的路由的子路由
     ```js
-    actived(){
-        this.$router.push(this.path)
-    },
-    beforeRouteLeave(){
-        this.path = this.$route.path
+    export default{
+        activated(){
+            this.$router.push(this.path)
+        },
+        beforeRouteLeave(){
+            this.path = this.$route.path
+         }
     }
     ```
+### vue-router实战:手机端底部tabbar
+1. 效果图
+
+![20200511215758](https://raw.githubusercontent.com/kakigakki/picBed/master/imgs/20200511215758.png)
+2. 需求:
+    1. 足够灵活,能够扩展tab,并且自动布局
+    2. 一般tabbar的高度都是`49px`
+    3. 所有组件进行封装
+    3. 颜色也进行封装
+3. 建议:
+    1. css代码也在vue组件中写.如果有css文件需要导入的话用`@import`
+    2. 图片的默认三像素可以用`vertical-align: middle`去掉
+    3. 如果有动态需求,首先考虑插槽
+    4. 如果需要为插槽增加动态样式,可以在插槽外面包裹一层div,因为如果动态样式直接放在插槽标签上,当插槽被替换掉的时候,class也被替换掉了,就不起作用了
+    5. 颜色用动态样式绑定,可以让用户自定义颜色
+    6. 可以利用`webpack`的`resolve`属性给路径取别名
+        - 如果取了别名的话,DOM元素的路径需要在前面加`~`
+
 
 
 
