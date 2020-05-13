@@ -787,6 +787,7 @@
 1. 效果图
 
 ![20200511215758](https://raw.githubusercontent.com/kakigakki/picBed/master/imgs/20200511215758.png)
+
 2. 需求:
     1. 足够灵活,能够扩展tab,并且自动布局
     2. 一般tabbar的高度都是`49px`
@@ -801,14 +802,225 @@
     6. 可以利用`webpack`的`resolve`属性给路径取别名
         - 如果取了别名的话,DOM元素的路径需要在前面加`~`
 
+## Promise查缺补漏
+1. es6新增的解决异步编程的一种方案
+2. 解决了ajax的回调地狱,可以更优雅的解决多次异步请求
+3. 一般有异步操作时,使用promise对这个异步进行封装
+    ```js
+    new Promise((resolve,reject)=>{
+        //写网络请求不写处理操作!!此回调函数是同步的,new Promise()创建时,立即执行
+        resolve()
+    }).then(()=>{
+        //网络请求完后异步操作
+    }).catch(()=>{
+        //网络请求失败后异步操作
+    })
+    ```
+4. 如果调用了`resolve()`的话,会调用`then((xx)=>{})`,如果`resolve()`有传参数的话,参数会传给`xx`
+5. 如果调用了`reject()`的话,会调用`catch((xx)=>{})`,如果`reject()`有传参数的话,参数会传给`yy`
+6. promise也可以用下面使用方式,将`then()`与`catch()`合为`then()`
+    ```js
+    new Promise((resolve,reject)=>{
+        ...
+    }).then((data)=>{},(err)=>{})
+    ```
+7.  如果在链式调用的情况下`new Promise()`的回调函数用法
+    1. 如果在`then()`中操作完后还有请求的话,可以`return new Promise((resolve,rejecxt)=>{... resolve(xx)})`继续发送网络请求,然后继续链式调用`then(xx)`
+    2. `new Promise()`的回调函数中没有`setTimeout`之类的异步请求的话,可以用`return Promise.resolve(xx)`,然后继续`then((xx)=>{})`
+        - 请求失败时:`return Promise.reject(yy)`
+    3. `new Promise(()=>{})`的回调函数中没有`setTimeout`之类的异步请求的话,可以用`return xx`,然后继续`then((xx)=>{})`
+        - 请求失败时:`throw yyy`
+8. Promise对象本身(非实例)还有几个方法
+    - `Promise.all()`: 当all参数中的所有`promise`都请求完了才会调用`then()`,`then()`中参数是两个promise的`resolve()`参数中的数据
+        ```js
+        Promise.all([promise1,promise2])
+        .then((result)=>{
+            
+        })
+        ```
+    - `Promise.race()`:当race参数中的所有`promise`只要有一个失败或者成功了,就直接调用该promise对应的失败或者成功的处理,即:谁跑得快,处理谁,其他的都不管
+        ```js
+        Promise.race([promise1,promise2])
+        .then((promise1的成功或者失败的数据)=>{
+            //如果promise1跑赢了就执行这边
+        },
+        (promise2的成功或者失败的数据)=>{
+            //如果promise2跑赢了就执行这边
+        })
+        ```
+    - `Promise.resolve()` : 上文出现过
+    - `Promise.reject()` : 上文出现过
 
+## Vuex
+1. 概念
+    1. Vuex是专为Vue.js应用程序开发的状态管理模式,集中管理所有组件的状态.
+    2. Vuex类似一个原型对象,就是让所有组件的属性和方法共享,但是它牛逼的地方是响应式的
+2. 一般管理需要在各个页面都需要的东西
+    1. 用户登录状态(token)
+    2. 用户的各种资料(名称,地理位置)
+    3. 商品的收藏,购物车中的物品
+3. 使用
+    1. Vuex是个插件,需要安装`npm i vuex --save`,导入后用Vue.use(vuex)
+    2. 创建对象
+        ```js
+        const store = new Vuex.Store({
+            state:{},
+            mutations:{},
+            actions:{},
+            getters:{},
+            modules:{}
+        })
+        ```
+    3. 所有组件都可以使用:`$store.xxx.xxx`
+4. vuex的推荐使用的官方图例
+![20200513121636](https://raw.githubusercontent.com/kakigakki/picBed/master/imgs/20200513121636.png)
 
+5. 使用建议
+    - 一般不直接修改`state`的值,而是通过`mutation`修改`state`的值
+    - 官方推荐单一状态树,永远只创建一个store进行管理
+### . 使用`state` : 类似于定义全局的`data`
+1. 通过方法手动给state添加/删除数据时,需要用`Vue.se(state.xxx,key|number,value)`和``Vue.delete(statexxx,key|number)``,否则无法做到响应式.
+1. 拓展:组件添加/删除`data`时用`this.arr[i]="xxx"`的方式也无法做到响应式
+###  使用`mutations`: `$store`的唯一的更新的方式
+1. 使用
+    ```js
+    //在vuex中定义mutation
+    new Vuex.Store({
+        mutation:{
+            //第一种使用方法
+            add(state){
+                state.xxx ...
+            },
+            //第二种使用方法
+            //第二个参数可以接受组件传的数据
+            minus(state,count){
+                state.xxx ...
+            }
+            //第三种使用方法
+            mutiply(state,payload){
+                //此时payload是组件传过来的所有参数的对象,即使传过来的数据只有一个,也是对象
+            }
+        }
+    })
+    //在组件的事件函数中使用
+    {
+        name:"c1",
+        methods:{
+            addition(){
+                //第一种使用方法
+                this.$store.commit("add")
+            },
+            substraction(count){
+                //第二种使用方法,传给mutation的参数成为payload(负载)
+                this.$store.commit("minus",count)
+            },
+            mutiple(count,times){
+                //第三种使用方法
+                this.$store.commit({
+                    type:"mutiply",
+                    count,
+                    times
+                })
+            }
+        }
+    }
+    ```
+1. 定义`mutations`的type的名字最好使用常量
+    ```js
+    import {ADD} from "mutation-type.js"
+    mutations:{
+        [ADD](){
+            ...
+        }
+    }
+    ```
+2. `mutations`的函数得是同步的!!需要异步用`actions`
+3. **实战**:用`vuex`实现最简单的加减事件
+###  使用`getters`:
+1. 类似于组件中的`computed`
+    ```js
+    new Vuex.Store({
+        getters:{
+            xxx(state){
+                //通过参数对state中的数据进行处理
+            }
+            xxx(state,getters){
+                //通过第二个参数可以去其他getter拿数据
+            }
+            //如果希望用户自定义参数的话,可以返回一个自定义函数,拿到用户的参数
+            xxx(state){
+                return function(age){//此时age是用户传的参数
+                    return xxx
+                }
+            }
+        }
+    })
+    ```
+### 使用`actions`
+2. 
+1. 使用
+    ```js
+    //组件中代码
+    export default {
+        methods:{
+           upd(xxx){
+                //第一种
+                this.$store.diapatch("aUpdate")
+                //第二种
+                this.$store.diapatch("aUpdate",xxx)
+                //第三种,如果异步请求完成后有回调的话,可以配合promise
+                this.$store.dispatch("aUpdate",xxx).then(()=>{})
+           }
+        }
+    }
+    //vuex中代码
+    new Vuex.store({
+        mutations:{
+            update(state){
+                state.xxx = "xx"
+            }
+        }
+        actions:{
+            //第一种
+            aUpdate(context){//此时context参数相当于this.$store
+                //处理异步操作,处理完后再交给mutations的方法去处理数据,
+                context.commit("update")
+                //然后再修改state
+            },
+            //第二种
+            aUpdate(context,payload){
+                context.commit("update",payload)
+            }
+            //第三种
+            aUpdate(context,payload){
+                context.commit("update",payload)
+                return new Promise((resolve,reject)=>{
+                    ...
+                    resolve()
+                })
+            }
+        }
+    })
+    ```
+### 使用`modules` 
+1. 当`store`很大很杂时,可以用modules进行划分
+2. 可以将`state`,`getters`,`mutations`,`actions`划分成一个模块
+    ```js
+    const moduleA = {
+        state:{}, //用this.$store.modulaA.xxx调用
+        getters:{
+            xxx(state,getter,rootState)
+        },//用this.$store.xxx调用
+        mutations:{}, //用this.$store.commit("xx")调用
+        actions:{
+            xxx(context) //context.commit()只能提交当前的mutation
+        }
+    }
 
-
-
-
-
-
-
-
-
+    //然后在store中调用
+    new Vuex.store({
+        modules:{
+            moduleA
+        }
+    })
+    ```
