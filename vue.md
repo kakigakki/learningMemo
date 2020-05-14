@@ -879,7 +879,7 @@
     - 一般不直接修改`state`的值,而是通过`mutation`修改`state`的值
     - 官方推荐单一状态树,永远只创建一个store进行管理
 ### . 使用`state` : 类似于定义全局的`data`
-1. 通过方法手动给state添加/删除数据时,需要用`Vue.se(state.xxx,key|number,value)`和``Vue.delete(statexxx,key|number)``,否则无法做到响应式.
+1. 通过方法手动给state添加/删除数据时,需要用`Vue.set(state.xxx,key|number,value)`和``Vue.delete(statexxx,key|number)``,否则无法做到响应式.
 1. 拓展:组件添加/删除`data`时用`this.arr[i]="xxx"`的方式也无法做到响应式
 ###  使用`mutations`: `$store`的唯一的更新的方式
 1. 使用
@@ -1024,3 +1024,90 @@
         }
     })
     ```
+
+## 网络模块的封装
+1. 选择axios代替ajax
+1. 功能特点:
+    1. 浏览器中发送XMLHttpRequests请求
+    1. 在node.js中发送http请求
+    1. 支持promise API
+    1. 拦截请求和 响应
+    1. 转换请求和响应数据
+1. 安装axios
+    1. 下载`npm i axios --save`
+    2. 导入后直接使用
+1. 使用axios:最简单的方式`axios(config)`
+    ```js
+    import axios from "axios"
+    axios({
+        url:"http...",
+        method:"get"//method可以省略,默认调用get请求
+        params:{//专门针对get请求的参数拼接
+            ...
+        }
+    }).then(res => {})
+    ```
+1. 可以上`httpbin.org`去造数据
+1. axios框架也有`axios.all([axios1,axios2])`,用法类`Promise.all([xx,xx])`
+1. axios的全局配置
+    ```js
+    //配置全局的URL
+    axios.default.baseURL = "http://..."
+    //获取请求时就不用写很长了
+    axios.get("/home/data",{params})
+    ```
+1. axios可以创建实例
+    ```js
+    const instance1 = axios.create({
+        baseURL:"http://"//该实例中的全局配置,只在该实例发送的请求中生效.
+        timeout: 5000
+    })
+
+    instance1({
+        url:"home/xxx"
+    }).then()
+    ```
+    - 开发中一般都用axios的实例实例发送请求而不是直接用axios对象
+1. 如果有第三方库的时候,最好对其进行封装成一个文件,在再所有的组件中调用该文件,而不是直接在所有组件中引入第三方库.
+    - 如果有一天第三方库不维护了,或者Bug了.就麻烦了
+1. 封装axios成自己的文件
+    ```js
+    import axios from "axios"
+    export function request(config){
+        cousnt instance = axiot.create({
+            baseURL = "http://",
+            timeout:5000
+        })
+
+        return instance(config) //因为instance(config)本身就是返回Promise,所以我们可以直接return此promise到各个组件去then()
+    }
+    ```
+1. axios提供了拦截器:
+    1. 拦截种类
+        1. 请求成功的拦截
+        1. 请求失败的拦截
+            ```js
+            axios.intercepter.request.use(config =>{
+                //发生在获取到请求->处理请求之间,拦截完后对config做一些处理后,记得return,否则处理请求的地方拿不到config
+                return config
+            },err =>{
+
+            })
+            ```
+        1. 响应成功的拦截
+        1. 响应失败的拦截
+            ```js
+            axios.interceptors.response.use(result=>{
+                //发生在处理请求->响应请求给客户之间,拦截完后对result做一些处理后,记得return,否则客户端拿不到result
+            },err =>{
+
+            })
+            ```
+    1. 拦截器也分全局拦截器与实例内部拦截器
+    1. 请求拦截的应用
+        1. 判断config中的信息是否符合服务器的要求时,
+        1. 每次发送请求时,都在界面上显示一个请求的加载图标
+        1. 某些网络请求(比如登录),必须携带一些特殊的信息(比如token)时,如果缺少这些信息就拦截,拒绝请求
+    2. 响应拦截的应用
+        1. 一般只要返回`data`,而不用返回整个`result`,所以可以拦截`result`,然后再返回`result.data`给页面
+    

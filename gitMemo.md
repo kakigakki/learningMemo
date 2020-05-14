@@ -170,7 +170,7 @@ a)	`git clone`下来的远程仓库的别名，自动设置成origin
     - `Git remote add 别名 url`
 4.	项目经理将本地仓库推送到远程仓库
     - 清理windows凭据
-    - `Git push 别名 分支` （输入github的用户名，密码，退完后会附带生成远程跟踪分支xxx/xxx）
+    - `Git push 别名 分支` （输入github的用户名，密码，输完后会附带生成远程跟踪分支xxx/xxx）
 5.	项目成员在自己本地克隆远程仓库
     - `Git clone 仓库地址`
         - 默认为远程仓库配了别名origin 
