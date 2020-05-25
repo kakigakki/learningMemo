@@ -196,6 +196,7 @@
     - `.prevent`修饰符: 阻止事件的默认行为
     - `.[keyCode|keyAlias]` :监听某个键盘的键帽,如`keyup.enter`,按enter时才会触发事件
     - `.once` : 事件只会触发一次
+    - `.native` : 监听组件根元素的原生事件
 ### 条件判断
 1. `v-if` : 为true时view中标签显示,否则隐藏
 2. `v-if v-else`的结合 : 当`v-if`显示时,`v-else`隐藏,反则相反
@@ -1111,3 +1112,152 @@
     2. 响应拦截的应用
         1. 一般只要返回`data`,而不用返回整个`result`,所以可以拦截`result`,然后再返回`result.data`给页面
     
+## 项目实战:"商城项目"
+1. 目录结构划分
+    ```
+    -src
+        -assets
+
+        -router
+        -store
+        -network
+        -views
+        -common
+        -components
+    ```
+2. 创建vue.config.js配置路径别名(v-cli3)
+    ```js
+    module.export = {
+        configWebpack  ={
+            resolve :{
+                extensions:[],
+                alias:[
+                    
+                ]
+            }
+        }
+    }
+    ```
+### 首页
+
+#### 导航栏
+1. 一般导航栏高度是44px
+
+#### 轮播图
+1. 把网络请求相关的方法都封装到各个View的对应的js中
+1. 轮播图的数据在页面一打开就需要请求所有需要用组件的`created()`钩子 
+1. 数据去服务器`http://123.207.32.32:8000/home/multidata`拿
+1. **实战**轮播图组件网上下载源码参照,然后自己写一个
+    - 事件
+        - @touchStart
+        - @touchMove
+        - @touchEnd
+    - props
+        - 轮播间隔
+        - 停留时间
+        - 吸附百分比
+        - 是否显示下方小圈圈
+    - data
+        - slideCount 元素个数
+        - totalWidth 轮播图总宽度
+        - swiperStyle:{} 轮播图样式
+        - currentIndex 当前的index
+        - scrolling 是否正在滚动
+    - hooks
+        - mounted 挂载时开始执行某些函数
+    - methods
+        - startTimer 启动定时器
+        - stopTimer 停止定时器
+        - scrollContent 使元素滚动到正确的位置
+        - checkPosition 校验正确的位置
+        - setTransform 设置滚动的位置
+        - handleDOM 操作DOM,在DOM前后添加Slide
+        - touchStart 停止定时器,保存开始滚动时的pageX
+        - touchMove  计算出用户拖动的距离,然后设置当前位置
+        - touchEnd 通过moveradio判断最终的距离
+        - changeItem(num) 通过箭头改变图片
+        - previous() 往前走一张图片
+        - next()  往后走一张图片
+
+#### 标签栏
+1. 通过`position:sticky;top:44px` 来设置滚动标签栏时,滚到距离顶点44px的地方时,自动从`relative`变为`sticky`
+
+#### 首页商品展示
+2. 保存商品的数据结构设计
+    - 利用对象保存每个标签的数据
+    - 每个标签都有`page`属性和`list`数组
+        - `page`表示当前更新到的页码,`list`表示当前展示的所有数据
+3. 展示商品去``http://123.207.32.32:8000/home/data``去拿
+    - 分别有`type`为`new`,`pop`,`sell`三个标签的数据(利用?type=xxx)
+4. 切换标签时,通过tabbar子组件的`this.$emit(callback,params)`将索引传到home父组件,再在父组件中进行索引与类型的判断后,将需要的数据属于什么类型,传回给子组件
+#### better-scroll
+5. 商品的原生滚动,在移动端时不顺滑,所以使用`better-scroll`框架
+    - 下载`npm i better-scroll --save`
+    - 导入`better-scroll`
+    - 使用
+        ```js
+        import bs from "bettr-scroll"
+        mounted :{
+            this.scroll = new BScroll(".wrapper")//wrapper的唯一子元素才是需要滚动的元素
+        }
+        ```
+    - 监听滚动
+        ```js
+        let bs = new BScroll(".wrapper",{
+            //必须设置此属性,才能进行监听
+                //0,1:都不监听实时的位置
+                //2:在手指滚动的过程中监听,手指离开后就不监听了(不监听惯性产生的滚动)
+                //3:只要在滚动即监听
+            probeType :2
+            //设置能够上拉加载更多
+            pullUpload:true
+        })
+        
+        //监听滚动
+        bs.on("scroll",function(){})
+        //监听上拉加载更多
+            //记得加载完了后再then中调用bs.finishPullUp,否则无法继续上拉加载更多
+        bs.on("pullingUp",function(){})
+        
+        ```
+6. 把bs进行封装成自己的一个组件
+7. 在Vue中最好不要使用`document.querySelector()`,否则很多组件时,可能重名.所以使用`$ref`属性
+    - 如果`$ref`绑定在组件上,`this.$ref.xxx`就会获取到组件对象
+    - 如果`$ref`绑定在DOM元素上,`this.$ref.xxx`就会获取到DOM元素
+8. 页面上上面有一定高度,下面也有一定高度,中间位置需要滚动时.可以利用上下固定值,中间绝对定位
+9. `better-scroll`在决定由多少区域可以滚动时,根据scrollerHeight属性决定,此属性根据子组件的高度决定,但是图片加载时有新的高度时,scrollerHeight属性并没有进行更新,所以滚动出现问题
+    - 解决:监听每一张图片是否加载完成,只要有一张图片加载了,就更新这个属性
+        - 原生js监听:`img.onload = function(){}`
+        - vue中的监听 :`<img @load="callback">`
+    - 方法:利用vue的事件总线`vue.$bus.$emit(...)`
+        - 可以发射一个事件让所有的vue组件共享
+    - 问题:每张图片都加载的话,服务器负担大,需要加防抖(debounce) 
+    - **实战** 封装一个简单的防抖函数
+
+#### 返回顶部小按钮
+1. 用`@click.native`监听组件上的原生事件,必须加`native`才能监听
+2. 在父组件上可以使用`this.$ref.子组件.xxx`,获取到子组件的数据
+
+#### tabControl的吸顶效果
+1. 确定滚动到什么位置时吸顶
+2. 所有组件都有一个`$el`属性,用来指向组件的元素
+3. 因为滚动图的图片加载比较慢,所以等图片加载完成后再去算offsetTop会比较准确
+4. 使用两个tabControl造成吸顶特效 
+
+#### 让Home的位置保持原来的位置
+1. 用keep-alive保存路由的状态
+2. 让Home中的内容保持原来的位置
+    - 离开时,保存一个位置信息 `deactived()`
+    - 进入时,再读取此位置信息 `actived()`,然后刷新bs.refresh()
+
+### 详情页
+#### 从home跳到详情页
+1. 在Home中点击商品图片跳到详情页
+2. 接口为商品的`baseUrl/detail?iid=商品的iid`
+
+#### 导航栏 
+1. 用home中封装的导航栏.
+2. 点击返回时调用`this.$router.back()`或者`this.$router.go(-1)`
+
+#### 信息栏的展示
+1. 在传数据给组件的时候,先将所有需要用到你的信息封装到一个类中,再一次传过去
