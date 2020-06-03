@@ -16,3 +16,29 @@
 
 - 会被子元素继承,且，子元素并不能通过 opacity: 1 来取消隐藏；
 
+## 小技巧
+
+### 文本超出省略号
+
+1. 单行
+
+```css
+.multiline-ellipsis {
+  width:100px;
+  white-space :nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+```
+
+1. 多行
+
+```css
+.multiline-ellipsis {
+  display: -webkit-box;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4; //需要显示的行数
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

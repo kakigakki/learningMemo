@@ -26,8 +26,13 @@
 2.  Git config –list 查看当前的配置
 3.  删除初始化的全局配置
     ``` 
-    Git config - -global - -unset user.name
-    Git config - -global - -unset user.email
+    Git config --global --unset user.name
+    Git config --global --unset user.email
+    ```
+3.  修改初始化的全局配置
+    ``` 
+    Git config --global  user.name "xxxx"
+    Git config --global  user.email "xxxx"
     ```
 ### GIT的底层命令
 1.	 `Git init` 初始化仓库
