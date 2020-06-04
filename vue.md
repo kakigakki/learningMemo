@@ -196,6 +196,7 @@
     - `.prevent`修饰符: 阻止事件的默认行为
     - `.[keyCode|keyAlias]` :监听某个键盘的键帽,如`keyup.enter`,按enter时才会触发事件
     - `.once` : 事件只会触发一次
+    - `.native` : 监听组件根元素的原生事件
 ### 条件判断
 1. `v-if` : 为true时view中标签显示,否则隐藏
 2. `v-if v-else`的结合 : 当`v-if`显示时,`v-else`隐藏,反则相反
@@ -787,6 +788,7 @@
 1. 效果图
 
 ![20200511215758](https://raw.githubusercontent.com/kakigakki/picBed/master/imgs/20200511215758.png)
+
 2. 需求:
     1. 足够灵活,能够扩展tab,并且自动布局
     2. 一般tabbar的高度都是`49px`
@@ -801,14 +803,485 @@
     6. 可以利用`webpack`的`resolve`属性给路径取别名
         - 如果取了别名的话,DOM元素的路径需要在前面加`~`
 
+## Promise查缺补漏
+1. es6新增的解决异步编程的一种方案
+2. 解决了ajax的回调地狱,可以更优雅的解决多次异步请求
+3. 一般有异步操作时,使用promise对这个异步进行封装
+    ```js
+    new Promise((resolve,reject)=>{
+        //写网络请求不写处理操作!!此回调函数是同步的,new Promise()创建时,立即执行
+        resolve()
+    }).then(()=>{
+        //网络请求完后异步操作
+    }).catch(()=>{
+        //网络请求失败后异步操作
+    })
+    ```
+4. 如果调用了`resolve()`的话,会调用`then((xx)=>{})`,如果`resolve()`有传参数的话,参数会传给`xx`
+5. 如果调用了`reject()`的话,会调用`catch((xx)=>{})`,如果`reject()`有传参数的话,参数会传给`yy`
+6. promise也可以用下面使用方式,将`then()`与`catch()`合为`then()`
+    ```js
+    new Promise((resolve,reject)=>{
+        ...
+    }).then((data)=>{},(err)=>{})
+    ```
+7.  如果在链式调用的情况下`new Promise()`的回调函数用法
+    1. 如果在`then()`中操作完后还有请求的话,可以`return new Promise((resolve,rejecxt)=>{... resolve(xx)})`继续发送网络请求,然后继续链式调用`then(xx)`
+    2. `new Promise()`的回调函数中没有`setTimeout`之类的异步请求的话,可以用`return Promise.resolve(xx)`,然后继续`then((xx)=>{})`
+        - 请求失败时:`return Promise.reject(yy)`
+    3. `new Promise(()=>{})`的回调函数中没有`setTimeout`之类的异步请求的话,可以用`return xx`,然后继续`then((xx)=>{})`
+        - 请求失败时:`throw yyy`
+8. Promise对象本身(非实例)还有几个方法
+    - `Promise.all()`: 当all参数中的所有`promise`都请求完了才会调用`then()`,`then()`中参数是两个promise的`resolve()`参数中的数据
+        ```js
+        Promise.all([promise1,promise2])
+        .then((result)=>{
+            
+        })
+        ```
+    - `Promise.race()`:当race参数中的所有`promise`只要有一个失败或者成功了,就直接调用该promise对应的失败或者成功的处理,即:谁跑得快,处理谁,其他的都不管
+        ```js
+        Promise.race([promise1,promise2])
+        .then((promise1的成功或者失败的数据)=>{
+            //如果promise1跑赢了就执行这边
+        },
+        (promise2的成功或者失败的数据)=>{
+            //如果promise2跑赢了就执行这边
+        })
+        ```
+    - `Promise.resolve()` : 上文出现过
+    - `Promise.reject()` : 上文出现过
 
+## Vuex
+1. 概念
+    1. Vuex是专为Vue.js应用程序开发的状态管理模式,集中管理所有组件的状态.
+    2. Vuex类似一个原型对象,就是让所有组件的属性和方法共享,但是它牛逼的地方是响应式的
+2. 一般管理需要在各个页面都需要的东西
+    1. 用户登录状态(token)
+    2. 用户的各种资料(名称,地理位置)
+    3. 商品的收藏,购物车中的物品
+3. 使用
+    1. Vuex是个插件,需要安装`npm i vuex --save`,导入后用Vue.use(vuex)
+    2. 创建对象
+        ```js
+        const store = new Vuex.Store({
+            state:{},
+            mutations:{},
+            actions:{},
+            getters:{},
+            modules:{}
+        })
+        ```
+    3. 所有组件都可以使用:`$store.xxx.xxx`
+4. vuex的推荐使用的官方图例
+![20200513121636](https://raw.githubusercontent.com/kakigakki/picBed/master/imgs/20200513121636.png)
 
+5. 使用建议
+    - 一般不直接修改`state`的值,而是通过`mutation`修改`state`的值
+    - 官方推荐单一状态树,永远只创建一个store进行管理
+### . 使用`state` : 类似于定义全局的`data`
+1. 通过方法手动给state添加/删除数据时,需要用`Vue.set(state.xxx,key|number,value)`和``Vue.delete(statexxx,key|number)``,否则无法做到响应式.
+1. 拓展:组件添加/删除`data`时用`this.arr[i]="xxx"`的方式也无法做到响应式
+###  使用`mutations`: `$store`的唯一的更新的方式
+1. 使用
+    ```js
+    //在vuex中定义mutation
+    new Vuex.Store({
+        mutation:{
+            //第一种使用方法
+            add(state){
+                state.xxx ...
+            },
+            //第二种使用方法
+            //第二个参数可以接受组件传的数据
+            minus(state,count){
+                state.xxx ...
+            }
+            //第三种使用方法
+            mutiply(state,payload){
+                //此时payload是组件传过来的所有参数的对象,即使传过来的数据只有一个,也是对象
+            }
+        }
+    })
+    //在组件的事件函数中使用
+    {
+        name:"c1",
+        methods:{
+            addition(){
+                //第一种使用方法
+                this.$store.commit("add")
+            },
+            substraction(count){
+                //第二种使用方法,传给mutation的参数成为payload(负载)
+                this.$store.commit("minus",count)
+            },
+            mutiple(count,times){
+                //第三种使用方法
+                this.$store.commit({
+                    type:"mutiply",
+                    count,
+                    times
+                })
+            }
+        }
+    }
+    ```
+1. 定义`mutations`的type的名字最好使用常量
+    ```js
+    import {ADD} from "mutation-type.js"
+    mutations:{
+        [ADD](){
+            ...
+        }
+    }
+    ```
+2. `mutations`的函数得是同步的!!需要异步用`actions`
+3. **实战**:用`vuex`实现最简单的加减事件
+###  使用`getters`:
+1. 类似于组件中的`computed`
+    ```js
+    new Vuex.Store({
+        getters:{
+            xxx(state){
+                //通过参数对state中的数据进行处理
+            }
+            xxx(state,getters){
+                //通过第二个参数可以去其他getter拿数据
+            }
+            //如果希望用户自定义参数的话,可以返回一个自定义函数,拿到用户的参数
+            xxx(state){
+                return function(age){//此时age是用户传的参数
+                    return xxx
+                }
+            }
+        }
+    })
+    ```
+### 使用`actions`
+2. 
+1. 使用
+    ```js
+    //组件中代码
+    export default {
+        methods:{
+           upd(xxx){
+                //第一种
+                this.$store.diapatch("aUpdate")
+                //第二种
+                this.$store.diapatch("aUpdate",xxx)
+                //第三种,如果异步请求完成后有回调的话,可以配合promise
+                this.$store.dispatch("aUpdate",xxx).then(()=>{})
+           }
+        }
+    }
+    //vuex中代码
+    new Vuex.store({
+        mutations:{
+            update(state){
+                state.xxx = "xx"
+            }
+        }
+        actions:{
+            //第一种
+            aUpdate(context){//此时context参数相当于this.$store
+                //处理异步操作,处理完后再交给mutations的方法去处理数据,
+                context.commit("update")
+                //然后再修改state
+            },
+            //第二种
+            aUpdate(context,payload){
+                context.commit("update",payload)
+            }
+            //第三种
+            aUpdate(context,payload){
+                context.commit("update",payload)
+                return new Promise((resolve,reject)=>{
+                    ...
+                    resolve()
+                })
+            }
+        }
+    })
+    ```
+### 使用`modules` 
+1. 当`store`很大很杂时,可以用modules进行划分
+2. 可以将`state`,`getters`,`mutations`,`actions`划分成一个模块
+    ```js
+    const moduleA = {
+        state:{}, //用this.$store.modulaA.xxx调用
+        getters:{
+            xxx(state,getter,rootState)
+        },//用this.$store.xxx调用
+        mutations:{}, //用this.$store.commit("xx")调用
+        actions:{
+            xxx(context) //context.commit()只能提交当前的mutation
+        }
+    }
 
+    //然后在store中调用
+    new Vuex.store({
+        modules:{
+            moduleA
+        }
+    })
+    ```
 
+## 网络模块的封装
+1. 选择axios代替ajax
+1. 功能特点:
+    1. 浏览器中发送XMLHttpRequests请求
+    1. 在node.js中发送http请求
+    1. 支持promise API
+    1. 拦截请求和 响应
+    1. 转换请求和响应数据
+1. 安装axios
+    1. 下载`npm i axios --save`
+    2. 导入后直接使用
+1. 使用axios:最简单的方式`axios(config)`
+    ```js
+    import axios from "axios"
+    axios({
+        url:"http...",
+        method:"get"//method可以省略,默认调用get请求
+        params:{//专门针对get请求的参数拼接
+            ...
+        }
+    }).then(res => {})
+    ```
+1. 可以上`httpbin.org`去造数据
+1. axios框架也有`axios.all([axios1,axios2])`,用法类`Promise.all([xx,xx])`
+1. axios的全局配置
+    ```js
+    //配置全局的URL
+    axios.default.baseURL = "http://..."
+    //获取请求时就不用写很长了
+    axios.get("/home/data",{params})
+    ```
+1. axios可以创建实例
+    ```js
+    const instance1 = axios.create({
+        baseURL:"http://"//该实例中的全局配置,只在该实例发送的请求中生效.
+        timeout: 5000
+    })
 
+    instance1({
+        url:"home/xxx"
+    }).then()
+    ```
+    - 开发中一般都用axios的实例实例发送请求而不是直接用axios对象
+1. 如果有第三方库的时候,最好对其进行封装成一个文件,在再所有的组件中调用该文件,而不是直接在所有组件中引入第三方库.
+    - 如果有一天第三方库不维护了,或者Bug了.就麻烦了
+1. 封装axios成自己的文件
+    ```js
+    import axios from "axios"
+    export function request(config){
+        cousnt instance = axiot.create({
+            baseURL = "http://",
+            timeout:5000
+        })
 
+        return instance(config) //因为instance(config)本身就是返回Promise,所以我们可以直接return此promise到各个组件去then()
+    }
+    ```
+1. axios提供了拦截器:
+    1. 拦截种类
+        1. 请求成功的拦截
+        1. 请求失败的拦截
+            ```js
+            axios.intercepter.request.use(config =>{
+                //发生在获取到请求->处理请求之间,拦截完后对config做一些处理后,记得return,否则处理请求的地方拿不到config
+                return config
+            },err =>{
 
+            })
+            ```
+        1. 响应成功的拦截
+        1. 响应失败的拦截
+            ```js
+            axios.interceptors.response.use(result=>{
+                //发生在处理请求->响应请求给客户之间,拦截完后对result做一些处理后,记得return,否则客户端拿不到result
+            },err =>{
 
+            })
+            ```
+    1. 拦截器也分全局拦截器与实例内部拦截器
+    1. 请求拦截的应用
+        1. 判断config中的信息是否符合服务器的要求时,
+        1. 每次发送请求时,都在界面上显示一个请求的加载图标
+        1. 某些网络请求(比如登录),必须携带一些特殊的信息(比如token)时,如果缺少这些信息就拦截,拒绝请求
+    2. 响应拦截的应用
+        1. 一般只要返回`data`,而不用返回整个`result`,所以可以拦截`result`,然后再返回`result.data`给页面
+    
+## 项目实战:"商城项目"
+1. 目录结构划分
+    ```
+    -src
+        -assets
 
+        -router
+        -store
+        -network
+        -views
+        -common
+        -components
+    ```
+2. 创建vue.config.js配置路径别名(v-cli3)
+    ```js
+    module.export = {
+        configWebpack  ={
+            resolve :{
+                extensions:[],
+                alias:[
+                    
+                ]
+            }
+        }
+    }
+    ```
+### 首页
 
+#### 导航栏
+1. 一般导航栏高度是44px
 
+#### 轮播图
+1. 把网络请求相关的方法都封装到各个View的对应的js中
+1. 轮播图的数据在页面一打开就需要请求所有需要用组件的`created()`钩子 
+1. 数据去服务器`http://123.207.32.32:8000/home/multidata`拿
+1. **实战**轮播图组件网上下载源码参照,然后自己写一个
+    - 事件
+        - @touchStart
+        - @touchMove
+        - @touchEnd
+    - props
+        - 轮播间隔
+        - 停留时间
+        - 吸附百分比
+        - 是否显示下方小圈圈
+    - data
+        - slideCount 元素个数
+        - totalWidth 轮播图总宽度
+        - swiperStyle:{} 轮播图样式
+        - currentIndex 当前的index
+        - scrolling 是否正在滚动
+    - hooks
+        - mounted 挂载时开始执行某些函数
+    - methods
+        - startTimer 启动定时器
+        - stopTimer 停止定时器
+        - scrollContent 使元素滚动到正确的位置
+        - checkPosition 校验正确的位置
+        - setTransform 设置滚动的位置
+        - handleDOM 操作DOM,在DOM前后添加Slide
+        - touchStart 停止定时器,保存开始滚动时的pageX
+        - touchMove  计算出用户拖动的距离,然后设置当前位置
+        - touchEnd 通过moveradio判断最终的距离
+        - changeItem(num) 通过箭头改变图片
+        - previous() 往前走一张图片
+        - next()  往后走一张图片
+
+#### 标签栏
+1. 通过`position:sticky;top:44px` 来设置滚动标签栏时,滚到距离顶点44px的地方时,自动从`relative`变为`sticky`
+
+#### 首页商品展示
+2. 保存商品的数据结构设计
+    - 利用对象保存每个标签的数据
+    - 每个标签都有`page`属性和`list`数组
+        - `page`表示当前更新到的页码,`list`表示当前展示的所有数据
+3. 展示商品去``http://123.207.32.32:8000/home/data``去拿
+    - 分别有`type`为`new`,`pop`,`sell`三个标签的数据(利用?type=xxx)
+4. 切换标签时,通过tabbar子组件的`this.$emit(callback,params)`将索引传到home父组件,再在父组件中进行索引与类型的判断后,将需要的数据属于什么类型,传回给子组件
+#### better-scroll
+5. 商品的原生滚动,在移动端时不顺滑,所以使用`better-scroll`框架
+    - 下载`npm i better-scroll --save`
+    - 导入`better-scroll`
+    - 使用
+        ```js
+        import bs from "bettr-scroll"
+        mounted :{
+            this.scroll = new BScroll(".wrapper")//wrapper的唯一子元素才是需要滚动的元素
+        }
+        ```
+    - 监听滚动
+        ```js
+        let bs = new BScroll(".wrapper",{
+            //必须设置此属性,才能进行监听
+                //0,1:都不监听实时的位置
+                //2:在手指滚动的过程中监听,手指离开后就不监听了(不监听惯性产生的滚动)
+                //3:只要在滚动即监听
+            probeType :2
+            //设置能够上拉加载更多
+            pullUpload:true
+        })
+        
+        //监听滚动
+        bs.on("scroll",function(){})
+        //监听上拉加载更多
+            //记得加载完了后再then中调用bs.finishPullUp,否则无法继续上拉加载更多
+        bs.on("pullingUp",function(){})
+        
+        ```
+6. 把bs进行封装成自己的一个组件
+7. 在Vue中最好不要使用`document.querySelector()`,否则很多组件时,可能重名.所以使用`$ref`属性
+    - 如果`$ref`绑定在组件上,`this.$ref.xxx`就会获取到组件对象
+    - 如果`$ref`绑定在DOM元素上,`this.$ref.xxx`就会获取到DOM元素
+8. 页面上上面有一定高度,下面也有一定高度,中间位置需要滚动时.可以利用上下固定值,中间绝对定位
+9. `better-scroll`在决定由多少区域可以滚动时,根据scrollerHeight属性决定,此属性根据子组件的高度决定,但是图片加载时有新的高度时,scrollerHeight属性并没有进行更新,所以滚动出现问题
+    - 解决:监听每一张图片是否加载完成,只要有一张图片加载了,就更新这个属性
+        - 原生js监听:`img.onload = function(){}`
+        - vue中的监听 :`<img @load="callback">`
+    - 方法:利用vue的事件总线`vue.$bus.$emit(...)`
+        - 可以发射一个事件让所有的vue组件共享
+    - 问题:每张图片都加载的话,服务器负担大,需要加防抖(debounce) 
+    - **实战** 封装一个简单的防抖函数
+
+#### 返回顶部小按钮
+1. 用`@click.native`监听组件上的原生事件,必须加`native`才能监听
+2. 在父组件上可以使用`this.$ref.子组件.xxx`,获取到子组件的数据
+
+#### tabControl的吸顶效果
+1. 确定滚动到什么位置时吸顶
+2. 所有组件都有一个`$el`属性,用来指向组件的元素
+3. 因为滚动图的图片加载比较慢,所以等图片加载完成后再去算offsetTop会比较准确
+4. 使用两个tabControl造成吸顶特效 
+
+#### 让Home的位置保持原来的位置
+1. 用keep-alive保存路由的状态
+2. 让Home中的内容保持原来的位置
+    - 离开时,保存一个位置信息 `deactived()`
+    - 进入时,再读取此位置信息 `actived()`,然后刷新bs.refresh()
+
+### 详情页
+#### 从home跳到详情页
+1. 在Home中点击商品图片跳到详情页
+2. 接口为商品的`baseUrl/detail?iid=商品的iid`
+
+#### 导航栏 
+1. 用home中封装的导航栏.
+2. 点击返回时调用`this.$router.back()`或者`this.$router.go(-1)`
+
+#### 信息栏的展示
+1. 在传数据给组件的时候,先将所有需要用到你的信息封装到一个类中,再一次传过去
+#### 商家信息展示
+#### 商品详情展示
+#### 商品参数
+#### 评论
+#### 推荐商品展示
+1. 推荐商品用的是组件与home的展示商品组件一样,所以图片加载监听,会两边都监听,需要处理
+2. 处理方案:利用this.$bus.$off(name,func)来解除this.$bus.$on的绑定
+    1. 重复代码用vue的混入`mixin`
+#### 导航栏点击标题,滚动到对应的主题
+1. 需要获取到每个标题对应的区域的offsetTop
+    1. 在created中不能获取,DOM还没渲染
+    2. mounted中也不行,数据还没有完全渲染完
+    3. 获取到的数据的回调中也不行,DOM还没有渲染完
+    4. $nextTick也不行,因为图片的高度还没有被计算在内
+    5. 在图片加载完成后,获取的高度才是正确的.需要再监听图片获取
+
+#### 滚动到内容,激活标题
+#### 底部工具栏组件
+#### 回到顶部箭头
+#### 用vuex管理购物车信息()
+1. 复杂的逻辑放在actions中,再分布调用多个mutations,方便以后跟踪
+2. getter计算属性,可以利用`mapGetters`直接放入各个组件的`computed`中
+#### 使用vuex管理是否选中
+#### 全选中按钮

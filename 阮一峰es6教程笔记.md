@@ -559,3 +559,70 @@
 6. Symbol 作为属性名，遍历对象的时候，该属性不会出现在`for...in`、`for...of`循环中，也不会被`Object.keys()`、`Object.getOwnPropertyNames()`、`JSON.stringify()`返回.
 7. `Object.getOwnPropertySymbols()`返回所有的Symbol属性
 
+## 对象的新增方法
+
+### Object.is()
+1. 严格比较两个值,与`===`基本相同,下面两点不同
+    ```js
+    +0 === -0 //true
+    NaN === NaN //false
+
+    Object.is(+0,-0) //false
+    Object.is(NaN,NaN) //true
+    ```
+### Object.assin(target,source1,source2...) 
+1. `undefined` `null`无法转成对象,所以如果传入参数,会报错
+2. 只拷贝源对象的本身的属性(不包括原型属性),也不拷贝不可枚举的属性(`enumerable:false`)
+3. `Symbol`也会被拷贝
+4. 常见用途:
+    - 为对象添加属性
+        ```js
+        class Person{
+            constructor(name,age){
+                Object.assign(this,{name,age})
+                /* 相当于
+                this.name = name
+                this.age = age
+                 */
+            }
+        }
+        ```
+    - 为对象添加方法,可直接将若干个方法放到大括号中,`assign`给`target`
+    - 克隆对象(普通)
+        ```js
+        Object.assign({},origin)
+        ```
+    - 克隆对象(下面为继承的对象一起克隆的代码)
+        ```js
+        let protoObejct = Object.getPrototypeOf(sourceObject)
+        Object.assign(Obejct.create(originProto),origin)
+        ```
+    - 合并多个对象
+    - 为属性指定默认值
+        ```js
+        Obejct.assign({},DEFAULT,options)
+        ```
+### Obejct.getOwnPropertyDescriptors()
+1. 返回指定对象的所有自身属性及其描述
+2. `Object.getOwnPropertyDescriptor()`返回**某个**属性`descriptor`对象
+3. 此方法带`s`的,返回**所有**属性的
+
+### __proto__属性的拓展
+1. Object.setPrototypeOf()
+2. Object.getPrototypeOf()
+3. Object.create()
+
+### Object.keys(obj) Object.values(obj) Object.entries(obj)
+1. 返回的都是数组.都是只有对象自身的可遍历属性
+2. 
+
+### Object.fromEnries()
+1. 主要用于将map结构转为对象,为`Object.entries`的逆向操作
+2. 配合`URLSearchParams`对象,可以将查询字符串转为对象
+    ```js
+    Object.fromEntries(new URLSearchParams('foo=bar&baz=qux'))
+    //{foo:bar,baz:qux}
+    ```
+
+>>>>>>> c36e7ebabf4e355fc1077d6e3d0897c9b6613391
+
