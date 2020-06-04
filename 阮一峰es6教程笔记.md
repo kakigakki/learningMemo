@@ -542,4 +542,20 @@
     ```
     - 上面代码判断props参数的enabled属性是否赋值，
 
+## Symbol
+1. 概述：javascript语言中的第七种数据类型
+2. 用来表示独一无二的值
+3. 
+    ```js
+    let s = Symbol()
+    ```
+4. Symbol不能使用点运算符去定义，而且在对象内定义时，需要加中括号
+    ```js
+    let obj {
+        [sym] : "hellow"
+    }
+    ```
+5. 使用symbol作为常量有很大的好处，其他任何值都不可能有相同的值
+6. Symbol 作为属性名，遍历对象的时候，该属性不会出现在`for...in`、`for...of`循环中，也不会被`Object.keys()`、`Object.getOwnPropertyNames()`、`JSON.stringify()`返回.
+7. `Object.getOwnPropertySymbols()`返回所有的Symbol属性
 
