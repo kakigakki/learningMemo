@@ -1285,3 +1285,41 @@
 2. getter计算属性,可以利用`mapGetters`直接放入各个组件的`computed`中
 #### 使用vuex管理是否选中
 #### 全选中按钮
+#### 弹窗toast的封装
+1. 注意:此封装思想与其他组件不一样.
+2. 用插件的形式封装,方便其他组件只使用一行代码就能实现功能
+    1. 在toast的Install方法中操作(install方法会直接被Vue.use(xx)调用),然后直接在vue实例中调用install
+       1. 创建组件构造器
+        ```js
+        const ToastContructor = Vue.extend(Toast)
+        ```
+       1. new的方式,根据组件构造器,创建出组件实例
+        ```js
+        const toast = new ToastContructor()
+        ```
+       1. 将组件对象,手动挂窄到某一个元素上
+        ```js
+       toast.$mount(document.createElement("div"))
+        ```
+       1. toast.$el对应的就是创建的div,且包含toast组件
+        ```js
+        document.body.appendChild(toast.$el)
+        ```
+#### 使用fastClick解决移动端300ms的点击延迟
+    ```js
+    //安装
+    npm install fastClick
+    //导入
+    //在main.js中使用
+    fastClick.attach(document.body)
+    ```
+#### 图片懒加载
+1. 使用`vue-lazyLoad`
+
+#### css单位转化插件
+1. 使用`postcss-px-to-viewport`
+
+#### 使用nginx部署项目
+
+#### 分类
+1. 右栏吸顶(未做)

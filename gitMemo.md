@@ -82,7 +82,7 @@
     - `Rm`  
     - `Git add`
 12.	`Git log` 查看提交记录
-    - `Git log  - - oneline`  可以简略显示。显示的hash值是提交对象
+    - `Git log  -- oneline`  可以简略显示。显示的hash值是提交对象
     - `Git log --oneline --decorate  --graph  --all` 查看所有的分支的历史记录
     - 太长的命令可以用配别名
         - `Git config --global alias.xxx "Git log --oneline --decorate  --graph  --all"`
@@ -116,19 +116,19 @@
     - `Git statsh pop` 取出修改，删除栈上的第一个
 
 ### Git撤销和重置（主要用下面三个命令）
-22.	`git checkout - - filename :`  撤回自己在工作区的修改
+22.	`git checkout -- filename :`  撤回自己在工作区的修改
 23.  `git reset filename`  撤回自己在暂存区的修改
     - 相当于reset第二步曲的缩写
 24.	`git commit --amend` 再次提交暂存区内已修改的文件(类似撤回自己在版本库的提交，再提交一次)
 
 ### reset
 25.	三步曲
-    - 第一步：git reset - -soft HEAD~  
+    - 第一步：`git reset --soft HEAD~`  
         - 一步：
             - 动HEAD，带着当前branch一起往前一版本后退（撤销）
         - (类似`git commit --amend`，不过`--amend`撤回然后提交了）
         `Git reset --soft 提交对象的hash值` ：HEAD带着branch去指定的提交对象上
-    - 第二步：`git reset [- -mixed] HEAD~`
+    - 第二步：`git reset [--mixed] HEAD~`
         - 两步：
             - 动HEAD ,带着当前branch一起撤退
             - 动了暂存区。
